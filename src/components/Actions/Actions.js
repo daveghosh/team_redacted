@@ -12,10 +12,14 @@ class Actions extends React.Component {
     }
 
     render() {
+        let actions = [];
+        if (this.store.inRoom()) {
+            actions.push( <div className="action" id="suggest" onClick={this.suggest}>Suggest</div>);
+            actions.push(<div className="action" id="accuse" onClick={this.accuse}>Accuse</div>);
+        }
         return (
             <div key="actions" className="actions">
-                <div className="action" id="suggest" onClick={this.suggest}>Suggest</div>
-                <div className="action" id="accuse" onClick={this.accuse}>Accuse</div>
+                {actions}
             </div>
         )
     }

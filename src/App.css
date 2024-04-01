@@ -50,11 +50,9 @@
   flex: 1;
   display: flex;
   flex-direction: row;
-  justify-content: space space-between;
   gap: 10px;
-  height: 25%;
-  align-self: baseline;
   margin: 10px;
+  height: 100%;
 }
 
 .select-cards {
@@ -65,12 +63,24 @@
   display: flex;
   flex: 1;
   padding: 10px;
+  width: 25px;
+  word-break: break-all;
+  height: 25%;
   background-color: rgb(177, 167, 35);
-  font-size: large;
+  font-size: medium;
 }
 
 .selected-card {
   background-color: rgb(222, 210, 46);
+}
+
+.non-selected-card {
+  background-color: rgb(83, 78, 17);
+}
+
+.select-cards > * {
+  height: 75%;
+  font-size: x-large;
 }
 
 .select-cards > *:hover {
@@ -179,7 +189,7 @@
   flex-direction: column;
   justify-content: space space-between;
   gap: 10px;
-  height: 25%;
+  height: 100%;
   align-self: baseline;
   margin: 10px;
 }
@@ -187,6 +197,7 @@
 .action {
   background-color: white;
   width: 75%;
+  height: 5%;
   padding: 10px;
 }
 
@@ -205,8 +216,4 @@
   background-color: rgb(113, 115, 129);
   color: black;
   font-size: calc(10px + 2vmin);
-}
-
-.playerCards {
-  background-color: pink;
 }

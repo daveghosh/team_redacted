@@ -136,6 +136,12 @@ export default class App {
       return cardId;
   }
 
+  inRoom() {
+    let player = this.getCurrentPlayer();
+    let loc = this.locations[player.loc];
+    return loc.type === 'room';
+  }
+
   getCurrentPlayer() {
     let playerId = this.order[this.turn];
     return this.players[playerId];

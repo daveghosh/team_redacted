@@ -24,7 +24,15 @@ class SelectCard extends React.Component {
     }
 
     isSelected(card) {
-        return this.state.selected === card;
+        if (this.state.selected) {
+            if (this.state.selected === card) {
+                return 1;
+            } else {
+                return -1;
+            }
+        } else {
+            return 0;
+        }
     }
 
     render() {
