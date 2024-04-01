@@ -6,14 +6,21 @@ export default class App {
   order = [];
   players = {};
   solution = [];
+  mode = 'board'
+
+  suggestion = {
+    player: '',
+    cards: [],
+    counter: ''
+  }
 
   locations = {
     // top rooms
-    room1:  { type: 'room', align: 'none', adj: ["hall1", "hall3"]},
+    room1:  { type: 'room', name: 'ballroom', align: 'none', adj: ["hall1", "hall3"]},
     hall1:  { type: 'hall', align: 'horizontal', adj: ["room1", "room2"]},
-    room2:  { type: 'room', align: 'none', adj: ["hall1", "hall2", "hall4"]},
+    room2:  { type: 'room', name: 'billiard room', align: 'none', adj: ["hall1", "hall2", "hall4"]},
     hall2:  { type: 'hall', align: 'horizontal', adj: ["room2", "room3"]},
-    room3:  { type: 'room', align: 'none', adj: ["hall2", "hall5"]},
+    room3:  { type: 'room', name: 'conservatory', align: 'none', adj: ["hall2", "hall5"]},
 
     // top to middle hallways
     hall3:  { type: 'hall', align: 'vertical', adj: ["room1", "room4"]},
@@ -21,13 +28,13 @@ export default class App {
     hall4:  { type: 'hall', align: 'vertical', adj: ["room2", "room5"]},
     space2: { type: '', align: '', adj: []},
     hall5:  { type: 'hall', align: 'vertical', adj: ["room3", "room6"]},
-    room4:  { type: 'room', align: 'none', adj: ["hall3", "hall6", "hall8"]},
 
     // middle rooms
+    room4:  { type: 'room', name: 'dining room', align: 'none', adj: ["hall3", "hall6", "hall8"]},
     hall6:  { type: 'hall', align: 'horizontal', adj: ["room4", "room5"]},
-    room5:  { type: 'room', align: 'none', adj: ["hall4", "hall6", "hall7", "hall9"]},
+    room5:  { type: 'room', name: 'hall', align: 'none', adj: ["hall4", "hall6", "hall7", "hall9"]},
     hall7:  { type: 'hall', align: 'horizontal', adj: ["room5", "room6"]},
-    room6:  { type: 'room', align: 'none', adj: ["hall5", "hall7", "hall10"]},
+    room6:  { type: 'room', name: 'kitchen', align: 'none', adj: ["hall5", "hall7", "hall10"]},
     hall8:  { type: 'hall', align: 'vertical', adj: ["room4", "room7"]},
 
     // midle to bottom hallways
@@ -37,11 +44,11 @@ export default class App {
     hall10: { type: 'hall', align: 'vertical', adj: ["room6", "room9"]},
 
     // bottom rooms
-    room7:  { type: 'room', align: 'none', adj: ["hall8", "hall11"]},
+    room7:  { type: 'room', name: 'library', align: 'none', adj: ["hall8", "hall11"]},
     hall11: { type: 'hall', align: 'horizontal', adj: ["room7", "room8"]},
-    room8:  { type: 'room', align: 'none', adj: ["hall9", "hall11", "hall12"]},
+    room8:  { type: 'room', name: 'lounge', align: 'none', adj: ["hall9", "hall11", "hall12"]},
     hall12: { type: 'hall', align: 'horizontal', adj: ["room8", "room9"]},
-    room9:  { type: 'room', align: 'none', adj: ["hall10", "hall12"]},
+    room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
   }
 
   cards =  {
@@ -92,6 +99,14 @@ export default class App {
     this.solution = ['card1', 'card7', 'card13']
   }
 
+  setMode(mode) {
+    this.mode = mode;
+  }
+
+  getMode() {
+    return this.mode;
+  }
+
   updateTurn() {
     let turn = this.turn;
     turn += 1;
@@ -111,18 +126,48 @@ export default class App {
     }
   }
 
+  getLocationCard(name) {
+    let cardId;
+      for (const[id, card] of Object.entries(this.cards)) {
+          if (card.name === name) {
+              cardId = id;
+          }
+      }
+      return cardId;
+  }
+
   getCurrentPlayer() {
     let playerId = this.order[this.turn];
     return this.players[playerId];
   }
 
-  getCards() {
+  getPlayerCards() {
     let player = this.getCurrentPlayer();
     let cards = [];
     for (let card of player.cards) {
       cards.push(this.cards[card]);
     }
     return cards;
+  }
+
+  getSuggestionCards() {
+    let cards = [];
+    let suggestion = this.suggestion;
+    if (suggestion) {
+      for (let card of suggestion.cards) {
+        cards.push(this.cards[card]);
+      }
+    }
+    return cards;
+  }
+
+  getSuggestionPlayer() {
+    let player = "";
+    let suggestion = this.suggestion;
+    if (suggestion) {
+      player = suggestion.player;
+    }
+    return player;
   }
 
   getPlayersAt(loc) {
@@ -143,9 +188,56 @@ export default class App {
 
   startSuggestion() {
     console.log("Begin Suggestion Mode");
+    this.suggestion.player = this.order[this.turn];
+    this.updateTurn();
+    this.suggestion.cards = ['card2', 'card9', 'card16'];
+    this.setMode('suggestion');
   }
 
   startAccusation() {
     console.log("Begin Accusation Mode");
+    let player = this.order[this.turn];
+    this.suggestion.player = player;
+    this.updateTurn();
+    this.suggestion.cards = ['card2', 'card9'];
+    let locId = this.players[player].loc;
+    let loc = this.getLocationCard(this.locations[locId].name);
+    this.suggestion.cards.push(loc);
+    this.setMode('suggestion');
+  }
+
+  getOrder(name) {
+    let player = -1;
+    for (let p = 0; p < this.order.length; p++) {
+      if (this.order[p] === name) {
+        return p;
+      }
+    }
+    return player;
+  }
+
+  endSuggestion() {
+    this.setMode('board');
+    this.turn = this.getOrder(this.suggestion.player);
+    this.updateTurn();
+
+  }
+  
+  submitCard(card) {
+    if (card === 'none') {
+      let turn = this.turn;
+      let player = this.suggestion.player;
+      turn += 1;
+      turn = turn % this.order.length;
+      if (this.order[turn] !== player) {
+        this.turn = turn;
+      } else {
+        this.endSuggestion();
+      }
+    } else {
+      this.suggestion.counter = card;
+      console.log("Counter card=", card);
+      this.endSuggestion();
+    }
   }
 }

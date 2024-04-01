@@ -11,12 +11,13 @@ class Cards extends React.Component {
 
     render() {
         let cardItems = [];
-        let cards = this.store.getCards();
+        let cards = this.props.cards;
         for (const[id, card] of Object.entries(cards)) {
             cardItems.push(
                 <Card key={card.name} name={card.name}/>
             )
         }
+        
         return (
             <div key="cards" className="cards">
                 {cardItems}

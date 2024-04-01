@@ -17,7 +17,12 @@ export default class Room extends React.Component {
 
         return (
             <div className={classname} onClick={this.props.setLocation}>
-                {players}
+                <div className='room-label'>
+                    {this.props.name}
+                </div>
+                <div className="players">
+                    {players}
+                </div>
             </div>
         )
     }

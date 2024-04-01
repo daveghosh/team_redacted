@@ -10,7 +10,7 @@
   pointer-events: none;
 }
 
-.content {
+.board {
   display: flex;
   flex-direction: row;
   height: 100%;
@@ -21,6 +21,30 @@
   color: black;
   font-size: calc(10px + 2vmin);
 }
+.cards-header {
+  color: black;
+  margin-left: 10px;
+  font-size: xx-large;
+}
+
+.header-red {
+  color: red;
+}
+
+.header-blue {
+  color: blue;
+}
+
+.suggestion-cards {
+  flex: 1;
+  height: 100%;
+}
+
+.player-cards {
+  flex: 2;
+  height: 100%;
+}
+
 
 .cards {
   flex: 1;
@@ -33,15 +57,39 @@
   margin: 10px;
 }
 
+.select-cards {
+  height: 50%;
+}
+
 .card {
   display: flex;
-  width: 100px;
+  flex: 1;
   padding: 10px;
   background-color: rgb(177, 167, 35);
   font-size: large;
 }
 
-.board {
+.selected-card {
+  background-color: rgb(222, 210, 46);
+}
+
+.select-cards > *:hover {
+  background-color: rgb(222, 210, 46);
+}
+
+.submit-button {
+  background-color: white;
+  width: 75%;
+  padding: 10px;
+  margin-left: 10px;
+}
+
+#submit-button {
+  margin-left: 10px;
+  width: 25%;
+}
+
+.locations {
   flex: 2;
   height: 100%;
   margin: 40px;
@@ -76,7 +124,24 @@
 
 .room {
   display: flex;
+  flex-direction: column;
   background-color: rgb(44, 75, 17);
+}
+
+.players {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.room-label {
+  flex: 0;
+  width: 100%;
+  text-wrap: wrap;
+  padding: 5px;
+  font-size: large;
+  color: rgb(25, 41, 10);
 }
 
 .room-active {
@@ -90,6 +155,7 @@
 
 .player {
   background-color: white;
+  z-index: 10;
   margin: 5px;
   width: 30px;
   height: 30px;
@@ -127,4 +193,20 @@
 .action:hover {
   cursor: pointer;
   background-color: rgb(223, 216, 183);
+}
+
+.suggestion {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  text-align: left;
+  align-items: center;
+  background-color: rgb(113, 115, 129);
+  color: black;
+  font-size: calc(10px + 2vmin);
+}
+
+.playerCards {
+  background-color: pink;
 }

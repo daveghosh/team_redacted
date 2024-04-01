@@ -1,11 +1,13 @@
 import React from "react";
 import { inject, observer } from 'mobx-react';
 
+import Actions from "../Actions/Actions";
+import Cards from "../Cards/Cards";
 import Room from "./Room";
 import Hallway from "./Hallway";
 
 
-class Board extends React.Component {
+class Movement extends React.Component {
     constructor(props) {
         super(props);
         this.store = this.props.store.appStore;
@@ -15,12 +17,13 @@ class Board extends React.Component {
 
         let locItems = [];
         let curr = this.store.getCurrentPlayer();
+        let cards = this.store.getPlayerCards();
         for (const [locId, loc] of Object.entries(this.store.locations)) {
             let players = this.store.getPlayersAt(locId);
             let adjacent = this.store.isAdjacent(locId);
             let setLoc = () => this.store.setLocation(locId);
             if (loc.type === 'room') {
-                locItems.push(<Room key={locId} id={locId} players={players} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
+                locItems.push(<Room key={locId} name={loc.name} id={locId} players={players} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
             } else if (loc.type === 'hall') {
                 locItems.push(<Hallway key={locId} id={locId} align={loc.align} players={players} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
             } else {
@@ -29,9 +32,13 @@ class Board extends React.Component {
         }
 
         return (
-            <div key="board" className="board">
-                {locItems}
+            <div key='movement' className='board'>
+                <Cards cards={cards}/>
+                <div key="locations" className="locations">
+                    {locItems}
+                </div>
+                <Actions/>
             </div>
         )
     }
-} export default inject('store') (observer(Board));
+} export default inject('store') (observer(Movement));
