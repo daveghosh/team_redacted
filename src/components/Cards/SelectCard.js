@@ -1,62 +1,27 @@
 import React from "react";
-import { inject, observer } from 'mobx-react';
 
-import Card from "./Card.js";
-
-class SelectCard extends React.Component {
-    constructor(props) {
-        super(props);
-        this.store = this.props.store.appStore;
-        this.state = {
-            selected: null
-        }
-    }
-
-    submitCard() {
-        let card = this.state.selected;
-        if (card !== null) {
-            this.store.submitCard(card);
-        }
-    }
-
-    setCard(card) {
-        this.setState({selected: card});
-    }
-
-    isSelected(card) {
-        if (this.state.selected) {
-            if (this.state.selected === card) {
-                return 1;
-            } else {
-                return -1;
-            }
-        } else {
-            return 0;
-        }
-    }
+export default class Card extends React.Component {
 
     render() {
-        let cardItems = [];
-        let cards = this.props.cards;
-        for (const[id, card] of Object.entries(cards)) {
-            cardItems.push(
-                <Card key={card.name} name={card.name} setCard={( () => this.setCard(card.name))} isSelected={this.isSelected(card.name)}/>
-            )
+        let setCard = () => {};
+        let clazz = 'select-card';
+        // if (this.props.isSelected === -1 ) {
+        //     clazz += ' non-selected-card';
+        // }
+        if (!this.props.canSelect) {
+            clazz += ' non-selected-card';
+        } else {
+            setCard = this.props.setCard;
+        }
+        
+        if (this.props.isSelected === 1) {
+            clazz += ' selected-card';
         }
 
-        cardItems.push(
-            <Card key='None' name='None' id='none-card' setCard={( () => this.setCard('none'))} isSelected={this.isSelected('none')}/>
-        )
-
         return (
-            <>
-            <div className="cards select-cards">
-                {cardItems}
+            <div className={clazz} id={this.props.id} onClick={setCard}>
+                {this.props.name}
             </div>
-            <div className="action" id="submit-button" onClick={() => this.submitCard()}>
-                Submit
-            </div>
-            </>
-        )
+        );
     }
-} export default inject('store') (observer(SelectCard));
+};

@@ -12,6 +12,7 @@
 
 .board {
   display: flex;
+  padding: 10px;
   flex-direction: row;
   height: 100%;
   width: 100%;
@@ -21,6 +22,18 @@
   color: black;
   font-size: calc(10px + 2vmin);
 }
+
+.cards-area {
+  flex: 1;
+  height: 100%;
+}
+
+.board-cards {
+  height: 25%;
+  padding: 10px;
+  align-self: baseline;
+}
+
 .cards-header {
   color: black;
   margin-left: 10px;
@@ -37,40 +50,69 @@
 
 .suggestion-cards {
   flex: 1;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 25%;
+  padding-bottom: 50px;
+}
+
+.suggestion-items {
+  flex: 1;
 }
 
 .player-cards {
   flex: 2;
-  height: 100%;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
 }
 
 
 .cards {
-  flex: 1;
   display: flex;
   flex-direction: row;
   gap: 10px;
-  margin: 10px;
   height: 100%;
 }
 
 .select-cards {
-  height: 50%;
+  flex: 4;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin: 10px;
+}
+
+.select-card {
+  display: flex;
+  flex: 1;
+  padding: 10px;
+  word-break: break-all;
+  background-color: rgb(177, 167, 35);
+  font-size: medium;
+  font-size: x-large;
 }
 
 .card {
   display: flex;
   flex: 1;
-  padding: 10px;
   width: 25px;
   word-break: break-all;
-  height: 25%;
+  height: 100%;
   background-color: rgb(177, 167, 35);
+}
+
+.card-label {
+  margin: 10px;
   font-size: medium;
 }
 
 .selected-card {
+  background-color: rgb(222, 210, 46);
+  outline: 4px solid white;
+}
+
+.select-cards > *:hover {
   background-color: rgb(222, 210, 46);
 }
 
@@ -78,31 +120,26 @@
   background-color: rgb(83, 78, 17);
 }
 
-.select-cards > * {
-  height: 75%;
-  font-size: x-large;
+.non-selected-card:hover {
+  cursor: not-allowed;
+  background-color: rgb(83, 78, 17);
 }
 
-.select-cards > *:hover {
-  background-color: rgb(222, 210, 46);
-}
-
-.submit-button {
-  background-color: white;
-  width: 75%;
-  padding: 10px;
-  margin-left: 10px;
+.submit-area {
+  flex: 1;
 }
 
 #submit-button {
-  margin-left: 10px;
   width: 25%;
+  margin-left: 10px;
+  height: fit-content;
+  background-color: white;
 }
 
 .locations {
   flex: 2;
-  height: 100%;
-  margin: 40px;
+  margin: 50px;
+  height: 90%;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(5, 1fr);
@@ -206,9 +243,9 @@
   background-color: rgb(223, 216, 183);
 }
 
-.suggestion {
+#suggestion {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   height: 100%;
   width: 100%;
   text-align: left;

@@ -33,7 +33,11 @@ class Movement extends React.Component {
 
         return (
             <div key='movement' className='board'>
-                <Cards cards={cards}/>
+                <div className="cards-area">
+                    <div className='board-cards'>
+                        <Cards cards={cards}/>
+                    </div>
+                </div>
                 <div key="locations" className="locations">
                     {locItems}
                 </div>

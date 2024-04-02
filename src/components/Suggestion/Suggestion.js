@@ -1,7 +1,7 @@
 import React from "react";
 import { inject, observer } from 'mobx-react';
 
-import SelectCard from "../Cards/SelectCard";
+import SelectCards from "../Cards/SelectCards";
 import Cards from "../Cards/Cards";
 
 class Suggestion extends React.Component {
@@ -19,15 +19,17 @@ class Suggestion extends React.Component {
         let player = this.store.getSuggestionPlayer();
         let color = this.store.players[player].color;
         return (
-            <div key="suggestion" className="board">
+            <div id="suggestion" className="board">
                 <div className="suggestion-cards">
                     <h1 className="cards-header">
                         <span className={`header-${color}`}>{player}</span> has suggested:
                     </h1>
-                    <Cards cards={suggestionCards}/>
+                    <div className="suggestion-items">
+                        <Cards cards={suggestionCards}/>        
+                    </div>
                 </div>
                 <div className="player-cards">
-                    <SelectCard cards={playerCards}/>
+                    <SelectCards cards={playerCards} suggestion={suggestionCards}/>
                 </div>
             </div>
         )
