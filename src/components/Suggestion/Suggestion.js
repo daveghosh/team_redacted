@@ -1,9 +1,10 @@
 import React from "react";
 import { inject, observer } from 'mobx-react';
 
-import SelectCards from "../Cards/SelectCards";
+import CounterCards from "../Cards/CounterCards";
 import Cards from "../Cards/Cards";
 import ViewCard from "../Cards/ViewCard";
+import SelectCards from "../Cards/SelectCards";
 
 class Suggestion extends React.Component {
     messages = {
@@ -53,29 +54,13 @@ class Suggestion extends React.Component {
         let status = this.getStatus();
         
         let content;
-        if (mode === 'C') {
+        let header;
+        if (['S', 'A'].includes(mode)) {
             content = (
-                <SelectCards cards={playerCards} suggestion={suggestionCards}/>
-            );
-        } else if (mode === 'V') {
-            content = (
-                <ViewCard card={counterCard} player={player}/>
+                <SelectCards/>
             )
-        } else if (mode in ['C', 'V', 'N']){
-            content = (
-                <span className="status">{status}</span>);
         } else {
-            content = (
-                <div className='accuse-status'>
-                     <span className="status">{status}</span>
-                     <div className="action" id="accuse-okay-button" onClick={() => this.acknowledgeAccusation()}>
-                        Okay
-                    </div>
-                </div>);
-        }
-        
-        return (
-            <div id="suggestion" className="board">
+            header = (
                 <div className="suggestion-cards">
                     <h1 className="cards-header">
                         <span className={`header-${sug.color}`}>{sug.id}</span> has suggested:
@@ -84,6 +69,32 @@ class Suggestion extends React.Component {
                         <Cards cards={suggestionCards}/>        
                     </div>
                 </div>
+            )
+            if (mode === 'C') {
+                content = (
+                    <CounterCards cards={playerCards} suggestion={suggestionCards}/>
+                );
+            } else if (mode === 'V') {
+                content = (
+                    <ViewCard card={counterCard} player={player}/>
+                )
+            } else if (['C', 'V', 'N'].includes(mode)){
+                content = (
+                    <span className="status">{status}</span>);
+            } else if (['W', 'F'].includes(mode)) {
+                content = (
+                    <div className='accuse-status'>
+                         <span className="status">{status}</span>
+                         <div className="action" id="accuse-okay-button" onClick={() => this.acknowledgeAccusation()}>
+                            Okay
+                        </div>
+                    </div>);
+            }
+        }
+        
+        return (
+            <div id="suggestion" className="board">
+                {header}
                 <div className="player-cards">
                     {content}
                 </div>

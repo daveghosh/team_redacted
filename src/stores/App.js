@@ -209,9 +209,7 @@ export default class App {
   startSuggestion() {
     console.log("Begin Suggestion Mode");
     this.suggestion.player = this.getCurrentPlayer().id;
-    this.suggestion.mode = 'C';
-    this.updateTurn();
-    this.suggestion.cards = ['card2', 'card9', 'card16'];
+    this.suggestion.mode = 'S';
     this.setMode('suggestion');
   }
 
@@ -235,12 +233,14 @@ export default class App {
     console.log("Begin Accusation Mode");
     let player = this.getCurrentPlayer();
     this.suggestion.player = player.id;
+    this.suggestion.mode = 'A';
+    this.mode = 'suggestion';
     // this.updateTurn();
-    this.suggestion.cards = ['card1', 'card7']
-    let loc = this.getCardByName(this.locations[player.loc].name);
-    this.suggestion.cards.push(loc);
-    this.validateAccusation();
-    this.setMode('suggestion');
+    // this.suggestion.cards = ['card1', 'card7']
+    // let loc = this.getCardByName(this.locations[player.loc].name);
+    // this.suggestion.cards.push(loc);
+    // this.validateAccusation();
+    // this.setMode('suggestion');
   }
 
   getOrder(name) {
@@ -298,6 +298,17 @@ export default class App {
       }
     } else {
       this.endSuggestion();
+    }
+  }
+
+  submitSuggestion(cards) {
+    let ids = cards.map(card => this.getCardByName(card));
+    this.suggestion.cards = ids;
+    if (this.suggestion.mode === 'S') {
+      this.suggestion.mode = 'C';
+      this.updateTurn();
+    } else if (this.suggestion.mode === 'A') {
+      this.validateAccusation();
     }
   }
   

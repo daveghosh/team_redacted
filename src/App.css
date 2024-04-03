@@ -79,7 +79,21 @@
   height: 100%;
 }
 
+.card-rows {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
 .select-cards {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin: 10px;
+}
+
+.counter-cards {
   flex: 4;
   display: flex;
   flex-direction: row;
@@ -97,6 +111,13 @@
   font-size: x-large;
 }
 
+.blank-card {
+  display: flex;
+  flex: 1;
+  padding: 10px;
+}
+
+
 .card {
   display: flex;
   flex: 1;
@@ -111,12 +132,17 @@
   font-size: medium;
 }
 
+
 .selected-card {
   background-color: rgb(222, 210, 46);
   outline: 4px solid white;
 }
 
-.select-cards > *:hover {
+.select-card:hover {
+  background-color: rgb(222, 210, 46);
+}
+
+.counter-cards > *:hover {
   background-color: rgb(222, 210, 46);
 }
 
