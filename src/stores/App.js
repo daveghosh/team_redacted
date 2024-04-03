@@ -101,7 +101,7 @@ export default class App {
           cards: ['card3', 'card9', 'card15']
       },
     }
-    this.solution = ['card1', 'card7', 'card13']
+    this.solution = ['card1', 'card7', 'card17']
   }
 
   setMode(mode) {
@@ -215,15 +215,31 @@ export default class App {
     this.setMode('suggestion');
   }
 
+  validateAccusation() {
+    let cards = this.suggestion.cards;
+    let correct = true;
+
+    for (let card of cards) {
+      if (!this.solution.includes(card)) {
+        correct = false;
+      }
+    }
+    if (correct) {
+      this.suggestion.mode = 'W';
+    } else {
+      this.suggestion.mode = 'F';
+    }
+  }
+
   startAccusation() {
     console.log("Begin Accusation Mode");
     let player = this.getCurrentPlayer();
     this.suggestion.player = player.id;
-    this.suggestion.mode = 'C';
-    this.updateTurn();
-    this.suggestion.cards = ['card2', 'card9'];
+    // this.updateTurn();
+    this.suggestion.cards = ['card1', 'card7']
     let loc = this.getCardByName(this.locations[player.loc].name);
     this.suggestion.cards.push(loc);
+    this.validateAccusation();
     this.setMode('suggestion');
   }
 
@@ -240,6 +256,32 @@ export default class App {
   endSuggestion() {
     this.setMode('board');
     this.turn = this.getOrder(this.suggestion.player);
+    this.updateTurn();
+  }
+
+  removePlayer() {
+    let players = [];
+    let curr = this.getSuggestionPlayer().id;
+    for (let player of this.order) {
+      if (player !== curr) {
+        players.push(player);
+      }
+    }
+    this.order = players;
+    if (players.length === 0) {
+      this.mode = 'done';
+      console.log("You all lost!");
+    }
+  }
+
+  acknowledgeAccusation() {
+    if (this.suggestion.mode === 'W') {
+      console.log("Game over!!");
+      this.mode = 'done';
+    } else {
+      this.mode = 'board';
+      this.removePlayer();
+    }
     this.updateTurn();
   }
 

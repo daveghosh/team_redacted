@@ -3,6 +3,7 @@ import { inject, observer } from 'mobx-react';
 
 import Movement from "./Movement/Movement";
 import Suggestion from "./Suggestion/Suggestion";
+import Screen from "./Status/Screen";
 
 
 class Board extends React.Component {
@@ -17,6 +18,7 @@ class Board extends React.Component {
             <>
                 {mode === 'board'? <Movement/> : null}
                 {mode === 'suggestion'? <Suggestion/> : null}
+                {mode === 'done'? <Screen/> : null}
             </>
         )
     }
