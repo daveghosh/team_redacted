@@ -24,7 +24,6 @@ class SelectCards extends React.Component {
     }
 
     canSelect(card) {
-        console.log(this.props.suggestion);
         for (let c of this.props.suggestion) {
             if (c.name === card) {
                 return true;

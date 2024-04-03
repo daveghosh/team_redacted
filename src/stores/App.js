@@ -11,7 +11,8 @@ export default class App {
   suggestion = {
     player: '',
     cards: [],
-    counter: ''
+    counter: '',
+    mode: ''
   }
 
   locations = {
@@ -78,6 +79,8 @@ export default class App {
     card19: { type: 'room',   name: 'library'},
     card20: { type: 'room',   name: 'lounge'},
     card21: { type: 'room',   name: 'study'},
+
+    card22: {type: 'none', name: 'none'}
   }
   
   constructor() {
@@ -86,11 +89,13 @@ export default class App {
     this.order = ["player1", "player2"];
     this.players = {
       player1: {
+          id: 'player1',
           loc: 'room1',
           color: 'red',
           cards: ['card2', 'card8', 'card14']
       },
       player2: {
+          id: 'player2',
           loc: 'room2',
           color: 'blue',
           cards: ['card3', 'card9', 'card15']
@@ -126,7 +131,7 @@ export default class App {
     }
   }
 
-  getLocationCard(name) {
+  getCardByName(name) {
     let cardId;
       for (const[id, card] of Object.entries(this.cards)) {
           if (card.name === name) {
@@ -159,7 +164,7 @@ export default class App {
   getSuggestionCards() {
     let cards = [];
     let suggestion = this.suggestion;
-    if (suggestion) {
+    if (suggestion.cards) {
       for (let card of suggestion.cards) {
         cards.push(this.cards[card]);
       }
@@ -167,11 +172,20 @@ export default class App {
     return cards;
   }
 
+  getCounterCard() {
+    let card;
+    if (this.suggestion.counter) {
+      card = this.cards[this.suggestion.counter];
+    }
+    return card;
+  }
+
   getSuggestionPlayer() {
-    let player = "";
+    let player;
     let suggestion = this.suggestion;
     if (suggestion) {
-      player = suggestion.player;
+      let id = suggestion.player;
+      player = this.players[id];
     }
     return player;
   }
@@ -194,7 +208,8 @@ export default class App {
 
   startSuggestion() {
     console.log("Begin Suggestion Mode");
-    this.suggestion.player = this.order[this.turn];
+    this.suggestion.player = this.getCurrentPlayer().id;
+    this.suggestion.mode = 'C';
     this.updateTurn();
     this.suggestion.cards = ['card2', 'card9', 'card16'];
     this.setMode('suggestion');
@@ -202,12 +217,12 @@ export default class App {
 
   startAccusation() {
     console.log("Begin Accusation Mode");
-    let player = this.order[this.turn];
-    this.suggestion.player = player;
+    let player = this.getCurrentPlayer();
+    this.suggestion.player = player.id;
+    this.suggestion.mode = 'C';
     this.updateTurn();
     this.suggestion.cards = ['card2', 'card9'];
-    let locId = this.players[player].loc;
-    let loc = this.getLocationCard(this.locations[locId].name);
+    let loc = this.getCardByName(this.locations[player.loc].name);
     this.suggestion.cards.push(loc);
     this.setMode('suggestion');
   }
@@ -226,11 +241,10 @@ export default class App {
     this.setMode('board');
     this.turn = this.getOrder(this.suggestion.player);
     this.updateTurn();
-
   }
-  
-  submitCard(card) {
-    if (card === 'none') {
+
+  acknowledgeCard() {
+    if (this.suggestion.counter.name === 'none') {
       let turn = this.turn;
       let player = this.suggestion.player;
       turn += 1;
@@ -241,9 +255,13 @@ export default class App {
         this.endSuggestion();
       }
     } else {
-      this.suggestion.counter = card;
-      console.log("Counter card=", card);
       this.endSuggestion();
     }
+  }
+  
+  submitCard(name) {
+    let card = this.getCardByName(name);
+    this.suggestion.counter = card;
+    this.suggestion.mode = 'V';
   }
 }
