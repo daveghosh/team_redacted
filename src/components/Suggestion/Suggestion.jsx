@@ -66,7 +66,7 @@ class Suggestion extends React.Component {
                         <span className={`header-${sug.color}`}>{sug.id}</span> has suggested:
                     </h1>
                     <div className="suggestion-items">
-                        <Cards cards={suggestionCards}/>        
+                        <Cards size='small' cards={suggestionCards}/>        
                     </div>
                 </div>
             )

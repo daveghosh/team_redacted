@@ -92,16 +92,71 @@ export default class App {
           id: 'player1',
           loc: 'room1',
           color: 'red',
-          cards: ['card2', 'card8', 'card14']
+          cards: []
       },
       player2: {
           id: 'player2',
           loc: 'room2',
           color: 'blue',
-          cards: ['card3', 'card9', 'card15']
+          cards: []
       },
     }
-    this.solution = ['card1', 'card7', 'card17']
+    this.solution = []
+  }
+
+  getRandomCard(cards) {
+    let idx = Math.floor(Math.random() * cards.length);
+    let card = cards[idx];
+    cards.splice(idx, 1);
+    return card;
+
+  }
+
+  assignCards() {
+    let cardIds = Object.keys(this.cards);
+    let rooms = cardIds.filter(id => this.cards[id].type === 'room');
+    let persons = cardIds.filter(id => this.cards[id].type === 'person');
+    let weapons = cardIds.filter(id => this.cards[id].type === 'weapon');
+
+    let room = this.getRandomCard(rooms);
+    let person = this.getRandomCard(persons);
+    let weapon = this.getRandomCard(weapons);
+    this.solution = [person, weapon, room];
+
+    let i = 0;
+    while (rooms.length > 0) {
+      let playerId = this.order[i];
+      let player = this.players[playerId];
+      room = this.getRandomCard(rooms);
+      player.cards.push(room);
+      i++;
+      if (i >= this.order.length) {
+        i = 0;
+      }
+    }
+
+    while (weapons.length > 0) {
+      let playerId = this.order[i];
+      let player = this.players[playerId];
+      weapon = this.getRandomCard(weapons);
+      player.cards.push(weapon)
+      i++;
+      if (i >= this.order.length) {
+        i = 0;
+      }
+    }
+
+    while (persons.length > 0) {
+      let playerId = this.order[i];
+      let player = this.players[playerId];
+      person = this.getRandomCard(persons);
+      player.cards.push(person)
+      i++;
+      if (i >= this.order.length) {
+        i = 0;
+      }
+    }
+
   }
 
   getNextRoom() {
@@ -119,7 +174,7 @@ export default class App {
       id: id,
       loc: loc,
       color: color,
-      cards: ['card3', 'card9', 'card15']
+      cards: []
     }
     this.players[id] = player;
     this.order.push(id);
@@ -130,7 +185,23 @@ export default class App {
   }
 
   startGame() {
+    this.assignCards();
     this.setMode('board');
+  }
+
+  newGame() {
+    this.turn = 0;
+    this.order = [];
+    this.players = {};
+    this.solution = [];
+    this.mode = 'lobby'
+
+    this.suggestion = {
+      player: '',
+      cards: [],
+      counter: '',
+      mode: ''
+    }
   }
 
   getMode() {
@@ -260,12 +331,6 @@ export default class App {
     this.suggestion.player = player.id;
     this.suggestion.mode = 'A';
     this.setMode('suggestion');
-    // this.updateTurn();
-    // this.suggestion.cards = ['card1', 'card7']
-    // let loc = this.getCardByName(this.locations[player.loc].name);
-    // this.suggestion.cards.push(loc);
-    // this.validateAccusation();
-    // this.setMode('suggestion');
   }
 
   getOrder(name) {

@@ -23,7 +23,7 @@ class ViewCard extends React.Component {
                     <span className={`header-${player.color}`}>{player.id}</span> has countered:
                 </h1>
                 <div className="counter-card">
-                    <Cards cards={cards}/>        
+                    <Cards size='large' cards={cards}/>        
                 </div>
                 <div className='submit-area'>
                 <div className="action" id="okay-button" onClick={() => this.acknowledgeCard()}>

@@ -29,14 +29,13 @@
 }
 
 .board-cards {
-  height: 25%;
+  height: 100%;
   padding: 10px;
   align-self: baseline;
 }
 
 .cards-header {
   color: black;
-  margin-left: 10px;
   font-size: xx-large;
 }
 
@@ -72,33 +71,43 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  width: 25%;
   padding-bottom: 50px;
+}
+
+.suggestion-card {
+  height: 100%;
 }
 
 .suggestion-items {
   flex: 1;
 }
 
+
 .player-cards {
   flex: 2;
-  width: 80%;
+  display: flex;
+  /* width: 80%; */
   display: flex;
   flex-direction: column;
 }
 
 
 .cards {
+  align-content: flex-start;
   display: flex;
   flex-direction: row;
-  gap: 10px;
   height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .card-rows {
-  flex: 2;
+  flex: 5;
   display: flex;
   flex-direction: column;
+  margin-bottom: 10px;
 }
 
 .select-cards {
@@ -110,17 +119,21 @@
 }
 
 .counter-cards {
-  flex: 4;
+  flex: 2;
   display: flex;
   flex-direction: row;
   gap: 10px;
-  margin: 10px;
+  margin-left: 10px;
+  margin-bottom: 20px;
 }
 
 .select-card {
   display: flex;
   flex: 1;
-  padding: 10px;
+  width: 125px;
+  height: 100%;
+  gap: 10px;
+  padding: 5px;
   word-break: break-all;
   background-color: rgb(177, 167, 35);
   font-size: medium;
@@ -130,17 +143,30 @@
 .blank-card {
   display: flex;
   flex: 1;
-  padding: 10px;
+  padding: 5px;
+  gap: 10px;
 }
 
 
 .card {
   display: flex;
-  flex: 1;
-  width: 25px;
+  width: 100px;
   word-break: break-all;
-  height: 100%;
+  height: 25%;
   background-color: rgb(177, 167, 35);
+}
+
+.card-small {
+  height: 100%;
+}
+
+.card-medium {
+  height: 75%;
+}
+
+.card-large {
+  height: 100%;
+  width: 100%;
 }
 
 .card-label {
@@ -295,9 +321,18 @@
 
 .action {
   background-color: white;
-  width: 75%;
+  /* width: 75%; */
+  width: fit-content;
   height: 5%;
   padding: 10px;
+}
+
+#suggest {
+  width: 75%;
+}
+
+#accuse {
+  width: 75%;
 }
 
 .action:hover {
@@ -318,7 +353,6 @@
 }
 
 .status {
-  width: 50%;
   padding: 10px;
   background-color: rgb(255, 255, 255);
   text-align: center;
@@ -337,7 +371,7 @@
 
 .counter-card {
   width: 100%;
-  height: 300px;
+  /* height: 300px; */
   flex: 5;
   align-self: center;
 }
@@ -352,7 +386,7 @@
 .accuse-status {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
 }
 
 #accuse-okay-button {
@@ -365,7 +399,36 @@
 
 #screen {
   justify-content: center;
-  font-size: xxx-large;
+  font-size: xx-large;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen-header {
+  font-size: xx-large;
+  margin: 10px;
+}
+
+.solution {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.solution-cards {
+  flex: 1;
+}
+
+.replay-area {
+  flex: 1;
+  width: fit-content;
+}
+
+#replay-button {
+  width: 100%;
+  height: fit-content;
 }
 
 .lobby-header {

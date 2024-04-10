@@ -12,9 +12,10 @@ class Cards extends React.Component {
     render() {
         let cardItems = [];
         let cards = this.props.cards;
+        let size = this.props.size;
         for (const[id, card] of Object.entries(cards)) {
             cardItems.push(
-                <Card key={card.name} name={card.name}/>
+                <Card size={size} key={card.name} name={card.name}/>
             )
         }
         
