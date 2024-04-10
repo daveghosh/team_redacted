@@ -48,8 +48,24 @@
   color: red;
 }
 
+.header-orange {
+  color: orange;
+}
+
+.header-yellow {
+  color: yellow;
+}
+
+.header-green {
+  color: green;
+}
+
 .header-blue {
   color: blue;
+}
+
+.header-purple {
+  color: purple;
 }
 
 .suggestion-cards {
@@ -242,8 +258,24 @@
   background-color: red;
 }
 
+.player-orange {
+  background-color: orange;
+}
+
+.player-yellow {
+  background-color: yellow;
+}
+
+.player-green {
+  background-color: green;
+}
+
 .player-blue {
   background-color: blue;
+}
+
+.player-purple {
+  background-color: purple;
 }
 
 .player-current {
@@ -334,4 +366,80 @@
 #screen {
   justify-content: center;
   font-size: xxx-large;
+}
+
+.lobby-header {
+  font-size: xx-large;
+  margin: 10px;
+}
+
+.lobby-players {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: antiquewhite;
+}
+
+#players-header {
+  background-color: rgb(133, 128, 129);
+  margin: 0;
+  padding: 10px;
+}
+
+.players-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.player-info {
+  display: flex;
+}
+
+.create-player {
+  padding: 10px;
+  flex: 3;
+  background-color: rgb(194, 186, 174);
+  margin: 10px;
+  margin-right: 20px;
+  justify-content: center;
+}
+
+.username-input {
+  flex: 1;
+  margin-left: 10px;
+}
+
+.username-text {
+  height: 30px;
+  width: 400px;
+}
+
+.colors {
+  margin-left: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.color-item {
+  width: 100px;
+  height: 100px;
+}
+
+.color-item:hover {
+  box-shadow: inset 0 0 0 10em rgba(255, 255, 255, 0.5);
+}
+
+.color-item-not-selected {
+  box-shadow: inset 0em 0em 0em 10em rgba(0, 0, 0, 0.7);
+}
+
+.confirm-area {
+  margin: 10px;
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }

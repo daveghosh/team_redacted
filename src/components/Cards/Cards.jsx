@@ -1,7 +1,7 @@
 import React from "react";
 import { inject, observer } from 'mobx-react';
 
-import Card from "./Card.js";
+import Card from "./Card";
 
 class Cards extends React.Component {
     constructor(props) {

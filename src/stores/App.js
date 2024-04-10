@@ -6,7 +6,7 @@ export default class App {
   order = [];
   players = {};
   solution = [];
-  mode = 'board'
+  mode = 'lobby'
 
   suggestion = {
     player: '',
@@ -54,12 +54,12 @@ export default class App {
 
   cards =  {
     // people
-    card1:  { type: 'person', name: 'peacock'},
-    card2:  { type: 'person', name: 'scarlett'},
-    card3:  { type: 'person', name: 'orchid'},
+    card1:  { type: 'person', name: 'red'},
+    card2:  { type: 'person', name: 'orange'},
+    card3:  { type: 'person', name: 'yellow'},
     card4:  { type: 'person', name: 'green'},
-    card5:  { type: 'person', name: 'plum'},
-    card6:  { type: 'person', name: 'mustard'},
+    card5:  { type: 'person', name: 'blue'},
+    card6:  { type: 'person', name: 'purple'},
 
     // weapons
     card7:  { type: 'weapon', name: 'revolver'},
@@ -104,8 +104,33 @@ export default class App {
     this.solution = ['card1', 'card7', 'card17']
   }
 
+  getNextRoom() {
+    let size = this.order.length;
+    return `room${size+1}`
+  }
+
+  validatePlayer(id) {
+    return !(this.order.includes(id));
+  }
+
+  addPlayer(id, color) {
+    let loc = this.getNextRoom();
+    let player = {
+      id: id,
+      loc: loc,
+      color: color,
+      cards: ['card3', 'card9', 'card15']
+    }
+    this.players[id] = player;
+    this.order.push(id);
+  }
+
   setMode(mode) {
     this.mode = mode;
+  }
+
+  startGame() {
+    this.setMode('board');
   }
 
   getMode() {
@@ -234,7 +259,7 @@ export default class App {
     let player = this.getCurrentPlayer();
     this.suggestion.player = player.id;
     this.suggestion.mode = 'A';
-    this.mode = 'suggestion';
+    this.setMode('suggestion');
     // this.updateTurn();
     // this.suggestion.cards = ['card1', 'card7']
     // let loc = this.getCardByName(this.locations[player.loc].name);
@@ -261,7 +286,9 @@ export default class App {
 
   removePlayer() {
     let players = [];
-    let curr = this.getSuggestionPlayer().id;
+    let player = this.getSuggestionPlayer();
+    player.loc = 'nowhere';
+    let curr = player.id;
     for (let player of this.order) {
       if (player !== curr) {
         players.push(player);
@@ -269,7 +296,7 @@ export default class App {
     }
     this.order = players;
     if (players.length === 0) {
-      this.mode = 'done';
+      this.setMode('done');
       console.log("You all lost!");
     }
   }
@@ -277,20 +304,21 @@ export default class App {
   acknowledgeAccusation() {
     if (this.suggestion.mode === 'W') {
       console.log("Game over!!");
-      this.mode = 'done';
+      this.setMode('done');
     } else {
-      this.mode = 'board';
+      this.setMode('board');
       this.removePlayer();
     }
     this.updateTurn();
   }
 
   acknowledgeCard() {
-    if (this.suggestion.counter.name === 'none') {
+    if (this.suggestion.counter === 'card22') {
       let turn = this.turn;
       let player = this.suggestion.player;
       turn += 1;
       turn = turn % this.order.length;
+      this.suggestion.mode = 'C';
       if (this.order[turn] !== player) {
         this.turn = turn;
       } else {
@@ -301,10 +329,46 @@ export default class App {
     }
   }
 
+  getPlayerByColor(color) {
+    let player;
+    for (const[id, player] of Object.entries(this.players)) {
+      if (player.color === color) {
+        player = id;
+      }
+    }
+    return player;
+  }
+
+  getRoomByName(name) {
+    let room;
+    for (const[id, room] of Object.entries(this.locations)) {
+      if (room.name === name) {
+        room = id;
+      }
+    }
+    return room;
+  }
+
+  movePlayer(cards) {
+    let location;
+    let player;
+    for (let card of cards) {
+      if (card.type === 'person') {
+        player = this.getPlayerByColor(card.name);
+      } else if (card.type === 'room') {
+        location = this.getRoomByName(card.name);
+      }
+    }
+    if (player && location) {
+      this.players[player].loc = location;
+    }
+  }
+
   submitSuggestion(cards) {
     let ids = cards.map(card => this.getCardByName(card));
     this.suggestion.cards = ids;
     if (this.suggestion.mode === 'S') {
+      this.movePlayer(cards);
       this.suggestion.mode = 'C';
       this.updateTurn();
     } else if (this.suggestion.mode === 'A') {

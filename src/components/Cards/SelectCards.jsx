@@ -1,7 +1,7 @@
 import React from "react";
 import { inject, observer } from 'mobx-react';
 
-import SelectCard from "./SelectCard.js";
+import SelectCard from "./SelectCard";
 
 class SelectCards extends React.Component {
     constructor(props) {
@@ -9,7 +9,7 @@ class SelectCards extends React.Component {
         this.store = this.props.store.appStore;
         let loc = this.store.getCurrentPlayer().loc;
         let room = this.store.locations[loc].name;
-        if (this.store.suggestion.mode === 'S') {
+        if (this.store.suggestion.mode === 'A') {
             room = '';
         }
         this.state = {
@@ -34,7 +34,7 @@ class SelectCards extends React.Component {
     }
 
     setCard(card) {
-        if (card.type !== 'room' || this.store.suggestion.mode !== 'A') {
+        if (card.type !== 'room' || this.store.suggestion.mode !== 'S') {
             let selected = this.state.selected;
             selected[card.type] = card.name;
             this.setState({selected: selected});
@@ -54,7 +54,7 @@ class SelectCards extends React.Component {
     }
 
     canSelect(card) {
-        if (card.type !== 'room' || this.store.suggestion.mode !== 'A') {
+        if (card.type !== 'room' || this.store.suggestion.mode !== 'S') {
             return true;
         } else {
             return card.name === this.state.selected.room;
