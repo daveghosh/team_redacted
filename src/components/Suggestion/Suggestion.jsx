@@ -24,7 +24,7 @@ class Suggestion extends React.Component {
     }
 
     getStatus() {
-        let curr = this.store.getCurrentPlayer().id;
+        let curr = this.store.getCurrentSuggestionPlayer().id;
         let sug = this.store.getSuggestionPlayer().id;
         let mode = this.store.suggestion.mode;
         let status;
@@ -45,11 +45,11 @@ class Suggestion extends React.Component {
     }
 
     render() {
-        let playerCards = this.store.getPlayerCards();
+        let playerCards = this.store.getSuggestionPlayerCards();
         let suggestionCards = this.store.getSuggestionCards();
         let counterCard = this.store.getCounterCard();
         let sug = this.store.getSuggestionPlayer();
-        let player = this.store.getCurrentPlayer();
+        let player = this.store.getCurrentSuggestionPlayer();
         let mode = this.store.suggestion.mode;
         let status = this.getStatus();
         

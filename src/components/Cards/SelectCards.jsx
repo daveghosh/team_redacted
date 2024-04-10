@@ -7,7 +7,7 @@ class SelectCards extends React.Component {
     constructor(props) {
         super(props);
         this.store = this.props.store.appStore;
-        let loc = this.store.getCurrentPlayer().loc;
+        let loc = this.store.getSuggestionPlayer().loc;
         let room = this.store.locations[loc].name;
         if (this.store.suggestion.mode === 'A') {
             room = '';

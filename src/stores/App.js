@@ -4,6 +4,7 @@ export default class App {
 
   turn = 0;
   order = [];
+  fullOrder = [];
   players = {};
   solution = [];
   mode = 'lobby'
@@ -87,6 +88,7 @@ export default class App {
     makeAutoObservable(this, { autoBind: true });
 
     this.order = ["player1", "player2"];
+    this.fullOrder = ["player1", "player2"]
     this.players = {
       player1: {
           id: 'player1',
@@ -178,6 +180,7 @@ export default class App {
     }
     this.players[id] = player;
     this.order.push(id);
+    this.fullOrder.push(id);
   }
 
   setMode(mode) {
@@ -215,6 +218,13 @@ export default class App {
     this.turn = turn;
   }
 
+  updateSuggestionTurn() {
+    let turn = this.turn;
+    turn += 1;
+    turn = turn % this.fullOrder.length;
+    this.turn = turn;
+  }
+
   setLocation(loc) {
     if (this.isAdjacent(loc)) {
         let players = this.players;
@@ -246,6 +256,20 @@ export default class App {
   getCurrentPlayer() {
     let playerId = this.order[this.turn];
     return this.players[playerId];
+  }
+
+  getCurrentSuggestionPlayer() {
+    let playerId = this.fullOrder[this.turn];
+    return this.players[playerId];
+  }
+
+  getSuggestionPlayerCards() {
+    let player = this.getCurrentSuggestionPlayer();
+    let cards = [];
+    for (let card of player.cards) {
+      cards.push(this.cards[card]);
+    }
+    return cards;
   }
 
   getPlayerCards() {
@@ -305,6 +329,7 @@ export default class App {
   startSuggestion() {
     console.log("Begin Suggestion Mode");
     this.suggestion.player = this.getCurrentPlayer().id;
+    this.turn = this.fullOrder.indexOf(this.suggestion.player);
     this.suggestion.mode = 'S';
     this.setMode('suggestion');
   }
@@ -374,7 +399,7 @@ export default class App {
       this.setMode('board');
       this.removePlayer();
     }
-    this.updateTurn();
+    this.turn = this.turn % this.order.length;
   }
 
   acknowledgeCard() {
@@ -382,9 +407,9 @@ export default class App {
       let turn = this.turn;
       let player = this.suggestion.player;
       turn += 1;
-      turn = turn % this.order.length;
+      turn = turn % this.fullOrder.length;
       this.suggestion.mode = 'C';
-      if (this.order[turn] !== player) {
+      if (this.fullOrder[turn] !== player) {
         this.turn = turn;
       } else {
         this.endSuggestion();
@@ -435,7 +460,7 @@ export default class App {
     if (this.suggestion.mode === 'S') {
       this.movePlayer(cards);
       this.suggestion.mode = 'C';
-      this.updateTurn();
+      this.updateSuggestionTurn();
     } else if (this.suggestion.mode === 'A') {
       this.validateAccusation();
     }
