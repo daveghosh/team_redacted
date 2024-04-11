@@ -28,7 +28,7 @@ class Lobby extends React.Component {
     }
 
     startGame() {
-        if (this.store.order.length > 0) {
+        if (this.store.order.length > 1) {
             this.store.startGame();
         } else {
             alert("There must be at least 2 players to begin. Wait for a friend!");
