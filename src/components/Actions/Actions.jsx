@@ -13,7 +13,7 @@ class Actions extends React.Component {
 
     render() {
         let actions = [];
-        if (this.store.inRoom()) {
+        if (this.store.inRoom() && this.store.getCurrentPlayer().canSuggest) {
             actions.push( <div className="action" id="suggest" onClick={this.suggest}>Suggest</div>);
             actions.push(<div className="action" id="accuse" onClick={this.accuse}>Accuse</div>);
         }

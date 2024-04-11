@@ -94,13 +94,15 @@ export default class App {
           id: 'player1',
           loc: 'room1',
           color: 'red',
-          cards: []
+          cards: [],
+          canSuggest: false
       },
       player2: {
           id: 'player2',
           loc: 'room2',
           color: 'blue',
-          cards: []
+          cards: [],
+          canSuggest: false
       },
     }
     this.solution = []
@@ -176,7 +178,8 @@ export default class App {
       id: id,
       loc: loc,
       color: color,
-      cards: []
+      cards: [],
+      canSuggest: false,
     }
     this.players[id] = player;
     this.order.push(id);
@@ -231,6 +234,7 @@ export default class App {
         let id = this.order[this.turn];
         let player = this.getCurrentPlayer();
         player.loc = loc;
+        player.canSuggest = true;
         players[id] = player;
         this.players = players;
         this.updateTurn();
@@ -448,12 +452,14 @@ export default class App {
     }
     if (player && location) {
       this.players[player].loc = location;
+      this.players[player].canSuggest = true;
     }
   }
 
   submitSuggestion(cards) {
     let ids = cards.map(card => this.getCardByName(card));
     this.suggestion.cards = ids;
+    this.getCurrentPlayer().canSuggest = false;
     if (this.suggestion.mode === 'S') {
       this.movePlayer(cards);
       this.suggestion.mode = 'C';
