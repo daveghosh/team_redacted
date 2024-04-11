@@ -53,6 +53,15 @@ export default class App {
     room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
   }
 
+  weapons = {
+    weapon1:  { name: 'revolver', loc: 'room1'},
+    weapon2:  { name: 'dagger', loc: 'room2'},
+    weapon3:  { name: 'lead pipe', loc: 'room3'},
+    weapon4:  { name: 'rope', loc: 'room4'},
+    weapon5:  { name: 'candlestick', loc: 'room5'},
+    weapon6:  { name: 'wrench', loc: 'room6'},
+  }
+
   cards =  {
     // people
     card1:  { type: 'person', name: 'red'},
@@ -316,13 +325,23 @@ export default class App {
 
   getPlayersAt(loc) {
       let players = [];
-      for (const[player, value] of Object.entries(this.players)) {
+      for (const[id, value] of Object.entries(this.players)) {
           if (value.loc === loc) {
               players.push(value);
           }
       }
       return players;
   }
+
+  getWeaponsAt(loc) {
+    let weapons = [];
+    for (const[id, value] of Object.entries(this.weapons)) {
+        if (value.loc === loc) {
+            weapons.push(value);
+        }
+    }
+    return weapons;
+}
 
   isAdjacent(loc) {
       let player = this.getCurrentPlayer();
@@ -438,9 +457,20 @@ export default class App {
     return room;
   }
 
-  movePlayer(cards) {
+  getWeaponByName(name) {
+    let weapon;
+    for (const[id, value] of Object.entries(this.weapons)) {
+      if (value.name === name) {
+        weapon = id;
+      }
+    }
+    return weapon;
+  }
+
+  moveCards(cards) {
     let location;
     let player;
+    let weapon;
     for (let name of cards) {
       let id = this.getCardByName(name);
       let card = this.cards[id];
@@ -448,11 +478,16 @@ export default class App {
         player = this.getPlayerByColor(name);
       } else if (card.type === 'room') {
         location = this.getRoomByName(name);
+      } else if (card.type === 'weapon') {
+        weapon = this.getWeaponByName(name);
       }
     }
     if (player && location) {
       this.players[player].loc = location;
       this.players[player].canSuggest = true;
+    }
+    if (weapon && location) {
+      this.weapons[weapon].loc = location;
     }
   }
 
@@ -461,7 +496,7 @@ export default class App {
     this.suggestion.cards = ids;
     this.getCurrentPlayer().canSuggest = false;
     if (this.suggestion.mode === 'S') {
-      this.movePlayer(cards);
+      this.moveCards(cards);
       this.suggestion.mode = 'C';
       this.updateSuggestionTurn();
     } else if (this.suggestion.mode === 'A') {

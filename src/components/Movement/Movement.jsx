@@ -20,10 +20,11 @@ class Movement extends React.Component {
         let cards = this.store.getPlayerCards();
         for (const [locId, loc] of Object.entries(this.store.locations)) {
             let players = this.store.getPlayersAt(locId);
+            let weapons = this.store.getWeaponsAt(locId);
             let adjacent = this.store.isAdjacent(locId);
             let setLoc = () => this.store.setLocation(locId);
             if (loc.type === 'room') {
-                locItems.push(<Room key={locId} name={loc.name} id={locId} players={players} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
+                locItems.push(<Room key={locId} name={loc.name} id={locId} players={players} weapons={weapons} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
             } else if (loc.type === 'hall') {
                 locItems.push(<Hallway key={locId} id={locId} align={loc.align} players={players} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
             } else {

@@ -243,6 +243,7 @@
 
 .room {
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   background-color: rgb(44, 75, 17);
 }
@@ -274,6 +275,19 @@
 
 .player {
   background-color: white;
+  z-index: 10;
+  margin: 5px;
+  width: 30px;
+  height: 30px;
+}
+
+.weapon {
+  background-color: black;
+  color: white;
+  word-wrap: break-word;
+  text-align: center;
+  overflow: hidden;
+  font-size: 10px;
   z-index: 10;
   margin: 5px;
   width: 30px;

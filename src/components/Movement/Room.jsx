@@ -1,5 +1,6 @@
 import React from "react";
-import Player from "../Player";
+import Player from "./Player";
+import Weapon from "./Weapon";
 
 export default class Room extends React.Component {
 
@@ -8,6 +9,11 @@ export default class Room extends React.Component {
         for (const[p, value] of Object.entries(this.props.players)) {
             let curr = (value === this.props.current);
             players.push(<Player key={`player${p+1}`} color={value.color} current={curr}/>);
+        }
+
+        let weapons = [];
+        for (const[w, value] of Object.entries(this.props.weapons)) {
+            weapons.push(<Weapon key={`weapon${w+1}`} name={value.name}/>);
         }
 
         let classname = "room";
@@ -22,6 +28,7 @@ export default class Room extends React.Component {
                 </div>
                 <div className="players">
                     {players}
+                    {weapons}
                 </div>
             </div>
         )
