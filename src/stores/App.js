@@ -375,7 +375,6 @@ export default class App {
   removePlayer() {
     let players = [];
     let player = this.getSuggestionPlayer();
-    player.loc = 'nowhere';
     let curr = player.id;
     for (let player of this.order) {
       if (player !== curr) {
@@ -417,8 +416,8 @@ export default class App {
 
   getPlayerByColor(color) {
     let player;
-    for (const[id, player] of Object.entries(this.players)) {
-      if (player.color === color) {
+    for (const[id, value] of Object.entries(this.players)) {
+      if (value.color === color) {
         player = id;
       }
     }
@@ -427,8 +426,8 @@ export default class App {
 
   getRoomByName(name) {
     let room;
-    for (const[id, room] of Object.entries(this.locations)) {
-      if (room.name === name) {
+    for (const[id, value] of Object.entries(this.locations)) {
+      if (value.name === name) {
         room = id;
       }
     }
@@ -438,11 +437,13 @@ export default class App {
   movePlayer(cards) {
     let location;
     let player;
-    for (let card of cards) {
+    for (let name of cards) {
+      let id = this.getCardByName(name);
+      let card = this.cards[id];
       if (card.type === 'person') {
-        player = this.getPlayerByColor(card.name);
+        player = this.getPlayerByColor(name);
       } else if (card.type === 'room') {
-        location = this.getRoomByName(card.name);
+        location = this.getRoomByName(name);
       }
     }
     if (player && location) {
