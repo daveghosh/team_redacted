@@ -327,7 +327,6 @@ export default class App {
   }
 
   startSuggestion() {
-    console.log("Begin Suggestion Mode");
     this.suggestion.player = this.getCurrentPlayer().id;
     this.turn = this.fullOrder.indexOf(this.suggestion.player);
     this.suggestion.mode = 'S';
@@ -351,7 +350,6 @@ export default class App {
   }
 
   startAccusation() {
-    console.log("Begin Accusation Mode");
     let player = this.getCurrentPlayer();
     this.suggestion.player = player.id;
     this.suggestion.mode = 'A';
@@ -387,13 +385,11 @@ export default class App {
     this.order = players;
     if (players.length === 0) {
       this.setMode('done');
-      console.log("You all lost!");
     }
   }
 
   acknowledgeAccusation() {
     if (this.suggestion.mode === 'W') {
-      console.log("Game over!!");
       this.setMode('done');
     } else {
       this.setMode('board');
