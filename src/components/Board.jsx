@@ -11,6 +11,13 @@ class Board extends React.Component {
     constructor(props) {
         super(props);
         this.store = this.props.store.appStore;
+        // this.store.synchronizeStore()
+    }
+
+    componentDidMount() {
+        setInterval(() => {
+            this.store.synchronizeStore()
+        }, 500);
     }
 
     render() {

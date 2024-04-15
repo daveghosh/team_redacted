@@ -24,8 +24,17 @@ class Suggestion extends React.Component {
     }
 
     getStatus() {
-        let curr = this.store.getCurrentSuggestionPlayer().id;
-        let sug = this.store.getSuggestionPlayer().id;
+        let currPlayer = this.store.getCurrentSuggestionPlayer();
+        let sugPlayer = this.store.getSuggestionPlayer();
+        let curr;
+        let sug;
+        if (currPlayer) {
+            curr = currPlayer.id;
+        }
+        if (sugPlayer) {
+            sug = sugPlayer.id;
+        }
+
         let mode = this.store.suggestion.mode;
         let status;
         if (mode === 'C') {
@@ -50,7 +59,7 @@ class Suggestion extends React.Component {
         let counterCard = this.store.getCounterCard();
         let sug = this.store.getSuggestionPlayer();
         let player = this.store.getCurrentSuggestionPlayer();
-        let mode = this.store.suggestion.mode;
+        let mode = this.store.getSuggestionMode();
         let status = this.getStatus();
         
         let content;
@@ -63,7 +72,7 @@ class Suggestion extends React.Component {
             header = (
                 <div className="suggestion-cards">
                     <h1 className="cards-header">
-                        <span className={`header-${sug.color}`}>{sug.id}</span> has suggested:
+                        <span className={`header-${sug? sug.color : ''}`}>{sug? sug.id : ''}</span> has suggested:
                     </h1>
                     <div className="suggestion-items">
                         <Cards size='small' cards={suggestionCards}/>        

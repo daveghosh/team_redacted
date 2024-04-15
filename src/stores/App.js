@@ -1,10 +1,11 @@
 import { makeAutoObservable } from 'mobx';
+import axios from 'axios';
 
 export default class App {
 
+  host = 'https://clueless-backend.netlify.app/.netlify/functions/server';
+
   turn = 0;
-  order = [];
-  fullOrder = [];
   players = {};
   solution = [];
   mode = 'lobby'
@@ -53,14 +54,15 @@ export default class App {
     room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
   }
 
-  weapons = {
-    weapon1:  { name: 'revolver', loc: 'room1'},
-    weapon2:  { name: 'dagger', loc: 'room2'},
-    weapon3:  { name: 'lead pipe', loc: 'room3'},
-    weapon4:  { name: 'rope', loc: 'room4'},
-    weapon5:  { name: 'candlestick', loc: 'room5'},
-    weapon6:  { name: 'wrench', loc: 'room6'},
-  }
+  // weapons = {
+  //   weapon1:  { name: 'revolver', loc: 'room1'},
+  //   weapon2:  { name: 'dagger', loc: 'room2'},
+  //   weapon3:  { name: 'lead pipe', loc: 'room3'},
+  //   weapon4:  { name: 'rope', loc: 'room4'},
+  //   weapon5:  { name: 'candlestick', loc: 'room5'},
+  //   weapon6:  { name: 'wrench', loc: 'room6'},
+  // }
+  weapons = {}
 
   cards =  {
     // people
@@ -95,27 +97,237 @@ export default class App {
   
   constructor() {
     makeAutoObservable(this, { autoBind: true });
-
-    this.order = ["player1", "player2"];
-    this.fullOrder = ["player1", "player2"]
-    this.players = {
-      player1: {
-          id: 'player1',
-          loc: 'room1',
-          color: 'red',
-          cards: [],
-          canSuggest: false
-      },
-      player2: {
-          id: 'player2',
-          loc: 'room2',
-          color: 'blue',
-          cards: [],
-          canSuggest: false
-      },
-    }
     this.solution = []
   }
+
+  synchronizeStore() {
+    this.updateGame();
+    this.updatePlayers();
+    this.updateCards();
+    this.updateWeapons();
+    this.updateSolution();
+    let mode = this.getMode();
+    if (mode === 'suggestion') {
+      this.updateSuggestion();
+    }
+  }
+
+  updateGame() {
+    axios.get(`${this.host}/games`).then((data) => {
+      const game = data.data[0];
+      this.mode = game.mode;
+      this.turn = game.turn;
+      return game;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+
+  getMode() {
+    return this.mode;
+    // axios.get(`${this.host}/games`).then((data) => {
+    //   const game = data.data[0];
+    //   return game.mode;
+    // })
+  }
+
+  getTurn() {
+    return this.turn;
+    // axios.get(`${this.host}/games`).then((data) => {
+    //   const game = data.data[0];
+    //   return game.turn;
+    // })
+  }
+
+  resetGame() {
+    axios.post(`${this.host}/resetGame`)
+    .catch(function (error) {
+      console.error(error);
+    });
+    axios.post(`${this.host}/resetCards`)
+    .catch(function (error) {
+      console.error(error);
+    });
+    // axios.post(`${this.host}/resetPlayers`);
+  }
+
+  resetWeapons() {
+    let locs = {
+    weapon1:  'room1',
+    weapon3:  'room3',
+    weapon2:  'room2',
+    weapon4:  'room4',
+    weapon5:  'room5',
+    weapon6:  'room6'
+    }
+  for (const [weapon, loc] of Object.entries(locs))
+    axios.post(`${this.host}/updateLocation/weapon/${weapon}/${loc}`)
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  getSolution() {
+    return this.solution;
+  }
+
+  updateSolution() {
+    axios.get(`${this.host}/solution`).then((data) => {
+      let solution = data.data[0];
+      this.solution = [solution.weapon, solution.room, solution.person];
+      return solution;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  getSuggestion() {
+    return this.suggestion;
+  }
+
+  updateSuggestion() {
+    axios.get(`${this.host}/suggestion`).then((data) => {
+      let suggestion = data.data[0];
+      this.suggestion = {
+        player: suggestion.player,
+        cards: [suggestion.weapon, suggestion.room, suggestion.person],
+        counter: suggestion.counter,
+        mode: suggestion.mode
+      }
+      return suggestion;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  getPlayers() {
+    return Object.values(this.players);
+  }
+
+  updatePlayers() {
+    axios.get(`${this.host}/players`).then((data) => {
+      const players = data.data;
+    for (let playerData of players) {
+      let id = playerData.id;
+      let cards = this.getCardsByPlayer(id);
+      let player = {
+        id: playerData.id,
+        loc: playerData.loc,
+        cards: cards,
+        color: playerData.color,
+        canSuggest: playerData.cansuggest,
+        canMove: playerData.canmove,
+      }
+      this.players[id] = player;
+    }
+      return data.data;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  getWeapons() {
+    return Object.values(this.weapons);
+  }
+
+  updateWeapons() {
+    let weapons = this.getWeapons();
+    // only update this on start for now
+    if (weapons.length === 0) {
+      axios.get(`${this.host}/weapons`).then((data) => {
+        const weapons = data.data;
+        for (let weapon of weapons) {
+          let id = weapon.id;
+          let name = weapon.name;
+          let loc = weapon.loc;
+          this.weapons[id] = {name: name, loc: loc}
+        }
+        return weapons;
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+    }
+  }
+
+  setCardPlayer(id, player) {
+    const apiUrl = `${this.host}/card/${id}/${player}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  getCardsByPlayer(player) {
+    if (player in this.players) {
+      return this.players[player].cards;
+    } else {
+      return [];
+    }
+    // let cards = [];
+    // for (const card of this.getCards()) {
+    //   if (card.player_id === player) {
+    //     cards.push(card);
+    //   }
+    // }
+    // return cards;
+    // const apiUrl = `${this.host}/cards/${player}`
+    // axios.get(apiUrl)
+    // .then((data) => {
+    //   let cards = data.data;
+    //   return cards;
+    // })
+  }
+
+  getCards() {
+    return Object.values(this.cards);
+  }
+
+  updateCards() {
+    let players = this.getPlayers();
+    if (players[0] && players[0].cards.length === 0) {
+      axios.get(`${this.host}/cards`).then((data) => {
+        const cards = data.data;
+        for (let card of cards) {
+          if (card.player_id) {
+            this.players[card.player_id].cards.push(card);
+          }
+          // this.cards[card.id]['player_id'] = card.player_id;
+        }
+        return cards;
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+    }
+  }
+
+  getSuggestion() {
+    return this.suggestion;
+  }
+
+  getSuggestionMode() {
+    return this.suggestion.mode;
+  }
+
+  updateSuggestion() {
+    axios.get(`${this.host}/suggestion`).then((data) => {
+      let suggestion = data.data[0];
+      return suggestion;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
 
   getRandomCard(cards) {
     let idx = Math.floor(Math.random() * cards.length);
@@ -136,117 +348,225 @@ export default class App {
     let weapon = this.getRandomCard(weapons);
     this.solution = [person, weapon, room];
 
+    let players = Object.keys(this.players);
     let i = 0;
     while (rooms.length > 0) {
-      let playerId = this.order[i];
-      let player = this.players[playerId];
+      let playerId = players[i];
       room = this.getRandomCard(rooms);
-      player.cards.push(room);
+      this.setCardPlayer(room, playerId);
       i++;
-      if (i >= this.order.length) {
+      if (i >= players.length) {
         i = 0;
       }
     }
 
     while (weapons.length > 0) {
-      let playerId = this.order[i];
-      let player = this.players[playerId];
+      let playerId = players[i];
       weapon = this.getRandomCard(weapons);
-      player.cards.push(weapon)
+      this.setCardPlayer(weapon, playerId);
       i++;
-      if (i >= this.order.length) {
+      if (i >= players.length) {
         i = 0;
       }
     }
 
     while (persons.length > 0) {
-      let playerId = this.order[i];
-      let player = this.players[playerId];
+      let playerId = players[i];
       person = this.getRandomCard(persons);
-      player.cards.push(person)
+      this.setCardPlayer(person, playerId);
       i++;
-      if (i >= this.order.length) {
+      if (i >= players.length) {
         i = 0;
       }
     }
-
   }
 
   getNextRoom() {
-    let size = this.order.length;
+    let size = Object.keys(this.players).length;
     return `room${size+1}`
   }
 
   validatePlayer(id) {
-    return !(this.order.includes(id));
+    let ids = Object.keys(this.players);
+    return !(ids.includes(id));
   }
 
   addPlayer(id, color) {
     let loc = this.getNextRoom();
-    let player = {
-      id: id,
-      loc: loc,
-      color: color,
-      cards: [],
-      canSuggest: false,
-    }
-    this.players[id] = player;
-    this.order.push(id);
-    this.fullOrder.push(id);
+    const apiUrl = `${this.host}/player/${id}/${loc}/${color}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+      let player = {
+        id: id,
+        loc: loc,
+        cards: [],
+        color: color,
+        canSuggest: false,
+        canMove: true,
+      }
+      this.players[id] = player;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
   }
 
   setMode(mode) {
-    this.mode = mode;
+    const apiUrl = `${this.host}/gameMode/${mode}`
+    axios.post(apiUrl)
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  setSuggestionMode(mode) {
+    const apiUrl = `${this.host}/suggestionMode/${mode}`
+    axios.post(apiUrl)
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  setSuggestion(cards) {
+    let weapon;
+    let room;
+    let person;
+    for (const card of cards) {
+      let cardObj = this.cards[card];
+      if (cardObj.type === 'weapon') {
+        weapon = card;
+      } else if (cardObj.type === 'room') {
+        room = card;
+      } else if (cardObj.type === 'person') {
+        room = card;
+      }
+    }
+    if (weapon && room && person) {
+      const apiUrl = `${this.host}/suggestion/${weapon}:/${room}/${person}`
+      axios.post(apiUrl)
+      .catch(function (error) {
+        console.error(error);
+      });
+    }
+  }
+
+  setSuggestionPlayer(player) {
+    const apiUrl = `${this.host}/suggest/${player}`
+    axios.post(apiUrl)
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  setCounterCard(card) {
+    const apiUrl = `${this.host}/counter/${card}`
+    axios.post(apiUrl)
+    .catch(function (error) {
+      console.error(error);
+    });
   }
 
   startGame() {
-    this.assignCards();
+    // this.assignCards();
+    this.resetWeapons();
     this.setMode('board');
   }
 
   newGame() {
-    this.turn = 0;
-    this.order = [];
-    this.players = {};
-    this.solution = [];
-    this.mode = 'lobby'
-
-    this.suggestion = {
-      player: '',
-      cards: [],
-      counter: '',
-      mode: ''
-    }
-  }
-
-  getMode() {
-    return this.mode;
+    this.resetGame();
   }
 
   updateTurn() {
-    let turn = this.turn;
-    turn += 1;
-    turn = turn % this.order.length;
-    this.turn = turn;
+    let player;
+    let players = this.getPlayers();
+    let turn = this.getTurn();
+    let canMove = false;
+    let i = 0;
+    while (!canMove) {
+      turn += 1;
+      i += 0;
+      turn = turn % players.length;
+      player = players[turn];
+      // canMove = player.canMove;
+      canMove = true;
+      console.log("Player=", player)
+    }
+    console.log("Updating turn to=", turn)
+    this.setTurn(turn);
+  }
+
+  setTurn(turn) {
+    const apiUrl = `${this.host}/turn/${turn}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
   }
 
   updateSuggestionTurn() {
-    let turn = this.turn;
+    let player;
+    let players = this.getPlayers();
+    let turn = this.getTurn();
     turn += 1;
-    turn = turn % this.fullOrder.length;
-    this.turn = turn;
+    turn = turn % players.length;
+    player = players[turn];
+    this.setTurn(turn);
+  }
+
+  movePlayer(playerId, loc) {
+    const apiUrl = `${this.host}/updateLocation/player/${playerId}/${loc}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  moveWeapon(weaponId, loc) {
+    const apiUrl = `${this.host}/updateLocation/weapon/${weaponId}/${loc}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  setCanSuggest(playerId, canSuggest) {
+    const apiUrl = `${this.host}/canSuggest/${playerId}/${canSuggest}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  setCanMove(playerId, canMove) {
+    const apiUrl = `${this.host}/canMove/${playerId}/${canMove}`
+    axios.post(apiUrl)
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
   }
 
   setLocation(loc) {
     if (this.isAdjacent(loc)) {
-        let players = this.players;
-        let id = this.order[this.turn];
-        let player = this.getCurrentPlayer();
-        player.loc = loc;
-        player.canSuggest = true;
-        players[id] = player;
-        this.players = players;
-        this.updateTurn();
+      let player = this.getCurrentPlayer();
+      this.movePlayer(player.id, loc);
+      this.setCanSuggest(player.id, true);
+      this.updateTurn();
     }
   }
 
@@ -262,41 +582,54 @@ export default class App {
 
   inRoom() {
     let player = this.getCurrentPlayer();
-    let loc = this.locations[player.loc];
-    return loc.type === 'room';
+    if (player) {
+      let loc = this.locations[player.loc];
+      return loc.type === 'room';
+    }
+    return false;
   }
 
   getCurrentPlayer() {
-    let playerId = this.order[this.turn];
-    return this.players[playerId];
+    let players = this.getPlayers();
+    let turn = this.getTurn();
+    let player = players[turn];
+    return player;
   }
 
   getCurrentSuggestionPlayer() {
-    let playerId = this.fullOrder[this.turn];
-    return this.players[playerId];
+    let players = this.getPlayers();
+    let turn = this.getTurn();
+    let player = players[turn];
+    return player
   }
 
   getSuggestionPlayerCards() {
     let player = this.getCurrentSuggestionPlayer();
     let cards = [];
-    for (let card of player.cards) {
-      cards.push(this.cards[card]);
+    if (player) {
+      let cardData = this.getCardsByPlayer(player.id);
+      for (let card of cardData) {
+        cards.push(this.cards[card]);
+      }
     }
     return cards;
   }
 
   getPlayerCards() {
-    let player = this.getCurrentPlayer();
     let cards = [];
-    for (let card of player.cards) {
-      cards.push(this.cards[card]);
+    let player = this.getCurrentPlayer();
+    if (player) {
+      let playerCards = this.getCardsByPlayer(player.id);
+      if (playerCards) {
+        cards = playerCards;
+      }
     }
     return cards;
   }
 
   getSuggestionCards() {
     let cards = [];
-    let suggestion = this.suggestion;
+    let suggestion = this.getSuggestion();
     if (suggestion.cards) {
       for (let card of suggestion.cards) {
         cards.push(this.cards[card]);
@@ -307,15 +640,16 @@ export default class App {
 
   getCounterCard() {
     let card;
-    if (this.suggestion.counter) {
-      card = this.cards[this.suggestion.counter];
+    let suggestion = this.getSuggestion();
+    if (suggestion.counter) {
+      card = this.cards[suggestion.counter];
     }
     return card;
   }
 
   getSuggestionPlayer() {
     let player;
-    let suggestion = this.suggestion;
+    let suggestion = this.getSuggestion();
     if (suggestion) {
       let id = suggestion.player;
       player = this.players[id];
@@ -325,9 +659,10 @@ export default class App {
 
   getPlayersAt(loc) {
       let players = [];
-      for (const[id, value] of Object.entries(this.players)) {
-          if (value.loc === loc) {
-              players.push(value);
+      let playerData = this.getPlayers();
+      for (const player of playerData) {
+          if (player.loc === loc) {
+              players.push(player);
           }
       }
       return players;
@@ -335,9 +670,10 @@ export default class App {
 
   getWeaponsAt(loc) {
     let weapons = [];
-    for (const[id, value] of Object.entries(this.weapons)) {
-        if (value.loc === loc) {
-            weapons.push(value);
+    let weaponData = this.getWeapons();
+    for (const weapon of weaponData) {
+        if (weapon.loc === loc) {
+            weapons.push(weapon);
         }
     }
     return weapons;
@@ -345,19 +681,22 @@ export default class App {
 
   isAdjacent(loc) {
       let player = this.getCurrentPlayer();
-      let curr = this.locations[player.loc];
-      return curr.adj.includes(loc);
+      if (player) {
+        let curr = this.locations[player.loc];
+        return curr.adj.includes(loc);
+      }
+      return false;
   }
 
   startSuggestion() {
-    this.suggestion.player = this.getCurrentPlayer().id;
-    this.turn = this.fullOrder.indexOf(this.suggestion.player);
-    this.suggestion.mode = 'S';
+    let player = this.getCurrentPlayer().id;
+    this.setSuggestionPlayer(player);
+    this.setSuggestionMode('S');
     this.setMode('suggestion');
   }
 
   validateAccusation() {
-    let cards = this.suggestion.cards;
+    let cards = this.getSuggestionCards();
     let correct = true;
 
     for (let card of cards) {
@@ -366,27 +705,27 @@ export default class App {
       }
     }
     if (correct) {
-      this.suggestion.mode = 'W';
+      this.setSuggestionMode('W');
     } else {
-      this.suggestion.mode = 'F';
+      this.setSuggestionMode('F');
     }
   }
 
   startAccusation() {
-    let player = this.getCurrentPlayer();
-    this.suggestion.player = player.id;
-    this.suggestion.mode = 'A';
+    let player = this.getCurrentPlayer().id;
+    this.setSuggestionPlayer(player);
+    this.setSuggestionMode('A');
     this.setMode('suggestion');
   }
 
   getOrder(name) {
-    let player = -1;
-    for (let p = 0; p < this.order.length; p++) {
-      if (this.order[p] === name) {
+    let players = this.getPlayers();
+    for (let p in players) {
+      if (players[p].name === name) {
         return p;
       }
     }
-    return player;
+    return -1;
   }
 
   endSuggestion() {
@@ -396,16 +735,11 @@ export default class App {
   }
 
   removePlayer() {
-    let players = [];
     let player = this.getSuggestionPlayer();
-    let curr = player.id;
-    for (let player of this.order) {
-      if (player !== curr) {
-        players.push(player);
-      }
-    }
-    this.order = players;
-    if (players.length === 0) {
+    this.setCanMove(player.id, false);
+    let players = this.getPlayers();
+    let inGame = players.filter( player => player.canMove);
+    if (inGame.length === 0) {
       this.setMode('done');
     }
   }
@@ -417,19 +751,19 @@ export default class App {
       this.setMode('board');
       this.removePlayer();
     }
-    this.turn = this.turn % this.order.length;
+    let players = this.getPlayers();
+    let turn = this.getTurn() %players.length;
+    this.setTurn(turn);
   }
 
   acknowledgeCard() {
-    if (this.suggestion.counter === 'card22') {
-      let turn = this.turn;
-      let player = this.suggestion.player;
-      turn += 1;
-      turn = turn % this.fullOrder.length;
-      this.suggestion.mode = 'C';
-      if (this.fullOrder[turn] !== player) {
-        this.turn = turn;
-      } else {
+    let suggestion = this.getSuggestion();
+    if (suggestion.counter === 'card22') {
+      this.updateSuggestionTurn();
+      this.setSuggestionMode('C');
+      let current = this.getCurrentPlayer();
+      let suggestionPlayer = this.getSuggestionPlayer();
+      if (current === suggestionPlayer) {
         this.endSuggestion();
       }
     } else {
@@ -438,13 +772,13 @@ export default class App {
   }
 
   getPlayerByColor(color) {
-    let player;
-    for (const[id, value] of Object.entries(this.players)) {
-      if (value.color === color) {
-        player = id;
+    let players = this.getPlayers();
+    for (const player of players) {
+      if (player.value === color) {
+        return player.id;
       }
     }
-    return player;
+    return;
   }
 
   getRoomByName(name) {
@@ -458,13 +792,13 @@ export default class App {
   }
 
   getWeaponByName(name) {
-    let weapon;
-    for (const[id, value] of Object.entries(this.weapons)) {
-      if (value.name === name) {
-        weapon = id;
+    let weapons = this.getWeapons();
+    for (const weapon of weapons) {
+      if (weapon.name === name) {
+        return weapon.id;
       }
     }
-    return weapon;
+    return;
   }
 
   moveCards(cards) {
@@ -483,30 +817,33 @@ export default class App {
       }
     }
     if (player && location) {
-      this.players[player].loc = location;
-      this.players[player].canSuggest = true;
+      this.movePlayer(player, location);
+      this.setCanSuggest(player, true);
     }
     if (weapon && location) {
-      this.weapons[weapon].loc = location;
+      this.moveWeapon(weapon, location);
     }
   }
 
   submitSuggestion(cards) {
     let ids = cards.map(card => this.getCardByName(card));
-    this.suggestion.cards = ids;
-    this.getCurrentPlayer().canSuggest = false;
-    if (this.suggestion.mode === 'S') {
+    let player = this.getCurrentPlayer();
+    this.setCanSuggest(player.id, false);
+    this.setSuggestion(player.id, ids);
+    let mode = this.getSuggestion().mode;
+    if (mode === 'S') {
       this.moveCards(cards);
-      this.suggestion.mode = 'C';
+      this.setSuggestionMode('C');
       this.updateSuggestionTurn();
-    } else if (this.suggestion.mode === 'A') {
+    } else if (mode === 'A') {
       this.validateAccusation();
     }
   }
   
   submitCard(name) {
     let card = this.getCardByName(name);
-    this.suggestion.counter = card;
-    this.suggestion.mode = 'V';
+    this.setCounterCard(card);
+    this.setSuggestionMode('V');
+    this.setCounterCard(card);
   }
 }
