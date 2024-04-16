@@ -15,12 +15,7 @@ class Screen extends React.Component {
     }
 
     render() {
-        let cardIds = this.store.solution;
-        let cards = [];
-        cards.push(this.store.cards[cardIds[0]]);
-        cards.push(this.store.cards[cardIds[1]]);
-        cards.push(this.store.cards[cardIds[2]]);
-
+        let cards = this.store.getSolution();
         return (
             <div id='screen' className='board'>
                 <h1>

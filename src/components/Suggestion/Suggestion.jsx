@@ -24,18 +24,20 @@ class Suggestion extends React.Component {
     }
 
     getStatus() {
-        let curr = this.store.getCurrentSuggestionPlayer().id;
-        let sug = this.store.getSuggestionPlayer().id;
-        let mode = this.store.suggestion.mode;
+        const curr = this.store.getCurrentPlayer();
+        const sug = this.store.getSuggestionPlayer();
+        const currId = curr? curr.id : '';
+        const sugId = sug? sug.id : '';
+        let mode = this.store.getSuggestionMode();
         let status;
         if (mode === 'C') {
-            status = `${curr}${this.messages.C}`
+            status = `${currId}${this.messages.C}`
         } else if (mode === 'V') {
-            status = `${sug}${this.messages.V}`
+            status = `${sugId}${this.messages.V}`
         } else if (mode === 'N') {
-            status = `${curr}${this.messages.N}`
+            status = `${currId}${this.messages.N}`
         } else {
-            status = `${sug}${this.messages[mode]}`;
+            status = `${sugId}${this.messages[mode]}`;
         }
         return status;
     }
@@ -45,12 +47,12 @@ class Suggestion extends React.Component {
     }
 
     render() {
-        let playerCards = this.store.getSuggestionPlayerCards();
+        let playerCards = this.store.getPlayerCards();
         let suggestionCards = this.store.getSuggestionCards();
         let counterCard = this.store.getCounterCard();
         let sug = this.store.getSuggestionPlayer();
-        let player = this.store.getCurrentSuggestionPlayer();
-        let mode = this.store.suggestion.mode;
+        let player = this.store.getCurrentPlayer();
+        let mode = this.store.getSuggestionMode();
         let status = this.getStatus();
         
         let content;
@@ -63,7 +65,7 @@ class Suggestion extends React.Component {
             header = (
                 <div className="suggestion-cards">
                     <h1 className="cards-header">
-                        <span className={`header-${sug.color}`}>{sug.id}</span> has suggested:
+                        <span className={`header-${sug? sug.color : ''}`}>{sug? sug.id : ''}</span> has suggested:
                     </h1>
                     <div className="suggestion-items">
                         <Cards size='small' cards={suggestionCards}/>        

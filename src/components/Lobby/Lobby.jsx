@@ -28,7 +28,7 @@ class Lobby extends React.Component {
     }
 
     startGame() {
-        if (this.store.order.length > 1) {
+        if (this.store.getPlayers().length > 1) {
             this.store.startGame();
         } else {
             alert("There must be at least 2 players to begin. Wait for a friend!");
@@ -46,7 +46,8 @@ class Lobby extends React.Component {
 
     getColors() {
         const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
-        for (const[id, player] of Object.entries(this.store.players)) {
+        const players = this.store.getPlayers();
+        for (const player of players) {
             let idx = colors.indexOf(player.color);
             colors.splice(idx, 1);
         }
@@ -68,9 +69,9 @@ class Lobby extends React.Component {
         }
 
         let playerItems = [];
-        for (const[id, player] of Object.entries(this.store.players)) {
+        for (const player of this.store.getPlayers()) {
             playerItems.push(
-                <div className='player-info'>
+                <div key={`${player.id}-player-info`} className='player-info'>
                     <div className={`player player-${player.color}`}/>
                     <div className='player-name'>{player.id}</div>
                 </div>
@@ -82,11 +83,11 @@ class Lobby extends React.Component {
             content = (
                 <div className='create-player'>
                     <div className="username-input">
-                        <input class='username-text' key="username" type="text" 
+                        <input className='username-text' key="username" type="text" 
                         placeholder="username" onChange={(event) => this.updateName(event)}/>
                     </div>
                     <div className="select-color">
-                        <h1 className='lobby-header'>Choose Your Character!</h1>
+                        <h1 key='choose-character' className='lobby-header'>Choose Your Character!</h1>
                         <div className='colors'>
                             {colorItems}
                         </div>
@@ -100,7 +101,7 @@ class Lobby extends React.Component {
             content = (
                 <div className='create-player'>
                     <div className="select-color">
-                        <h1 className='lobby-header'>Waiting for Other Players...</h1>
+                        <h1 key='waiting' className='lobby-header'>Waiting for Other Players...</h1>
                     </div>
                     <div className="confirm-area">
                         <div className="action" id='confirm-button' onClick={() => this.startGame()}>Start Game</div>

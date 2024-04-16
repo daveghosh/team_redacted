@@ -7,9 +7,9 @@ class SelectCards extends React.Component {
     constructor(props) {
         super(props);
         this.store = this.props.store.appStore;
-        let loc = this.store.getSuggestionPlayer().loc;
-        let room = this.store.locations[loc].name;
-        if (this.store.suggestion.mode === 'A') {
+        let loc = this.store.getSuggestionPlayerLoc();
+        let room = this.store.getRoomName(loc);
+        if (this.store.getSuggestionMode() === 'A') {
             room = '';
         }
         this.state = {
@@ -34,7 +34,7 @@ class SelectCards extends React.Component {
     }
 
     setCard(card) {
-        if (card.type !== 'room' || this.store.suggestion.mode !== 'S') {
+        if (card.type !== 'room' || this.store.getSuggestionMode() !== 'S') {
             let selected = this.state.selected;
             selected[card.type] = card.name;
             this.setState({selected: selected});
@@ -54,7 +54,7 @@ class SelectCards extends React.Component {
     }
 
     canSelect(card) {
-        if (card.type !== 'room' || this.store.suggestion.mode !== 'S') {
+        if (card.type !== 'room' || this.store.getSuggestionMode() !== 'S') {
             return true;
         } else {
             return card.name === this.state.selected.room;
@@ -66,10 +66,10 @@ class SelectCards extends React.Component {
         let personCardItems = [];
         let weaponCardItems = [];
         let roomCardItems = [];
-        let cards = this.store.cards;
+        let cards = this.store.getCards();
         let cardItems;
-        for (const[id, card] of Object.entries(cards)) {
-            if (id !==  'card22') {
+        for (const card of cards) {
+            if (card.id !==  'card22') {
                 if (card.type === 'person') {
                     cardItems = personCardItems;
                 } else if (card.type === 'weapon') {

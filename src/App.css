@@ -341,6 +341,10 @@
   padding: 10px;
 }
 
+#reset {
+  width: 75%;
+}
+
 #suggest {
   width: 75%;
 }

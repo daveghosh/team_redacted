@@ -1,20 +1,23 @@
 import { makeAutoObservable } from 'mobx';
+import { createClient } from '@supabase/supabase-js';
+
+
+const PROJECT_URL = 'https://omdvfmknrfqpoeebpnfd.supabase.co'
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tZHZmbWtucmZxcG9lZWJwbmZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMxOTYwNjUsImV4cCI6MjAyODc3MjA2NX0.kfomW6iWicmLnvghJvegc1duqCFO0w7trFEIqEKZYvQ';
+const supabase = createClient(PROJECT_URL, ANON_KEY);
 
 export default class App {
 
+  gameId = 1;
   turn = 0;
-  order = [];
-  fullOrder = [];
-  players = {};
-  solution = [];
   mode = 'lobby'
 
-  suggestion = {
-    player: '',
-    cards: [],
-    counter: '',
-    mode: ''
-  }
+  players = [];
+  weapons = [];
+
+  cards = [];
+  solution = [];
+  suggestion = {};
 
   locations = {
     // top rooms
@@ -52,69 +55,456 @@ export default class App {
     hall12: { type: 'hall', align: 'horizontal', adj: ["room8", "room9"]},
     room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
   }
-
-  weapons = {
-    weapon1:  { name: 'revolver', loc: 'room1'},
-    weapon2:  { name: 'dagger', loc: 'room2'},
-    weapon3:  { name: 'lead pipe', loc: 'room3'},
-    weapon4:  { name: 'rope', loc: 'room4'},
-    weapon5:  { name: 'candlestick', loc: 'room5'},
-    weapon6:  { name: 'wrench', loc: 'room6'},
-  }
-
-  cards =  {
-    // people
-    card1:  { type: 'person', name: 'red'},
-    card2:  { type: 'person', name: 'orange'},
-    card3:  { type: 'person', name: 'yellow'},
-    card4:  { type: 'person', name: 'green'},
-    card5:  { type: 'person', name: 'blue'},
-    card6:  { type: 'person', name: 'purple'},
-
-    // weapons
-    card7:  { type: 'weapon', name: 'revolver'},
-    card8:  { type: 'weapon', name: 'dagger'},
-    card9:  { type: 'weapon', name: 'lead pipe'},
-    card10: { type: 'weapon', name: 'rope'},
-    card11: { type: 'weapon', name: 'candlestick'},
-    card12: { type: 'weapon', name: 'wrench'},
-
-    // rooms
-    card13: { type: 'room',   name: 'ballroom'},
-    card14: { type: 'room',   name: 'billiard room'},
-    card15: { type: 'room',   name: 'conservatory'},
-    card16: { type: 'room',   name: 'dining room'},
-    card17: { type: 'room',   name: 'hall'},
-    card18: { type: 'room',   name: 'kitchen'},
-    card19: { type: 'room',   name: 'library'},
-    card20: { type: 'room',   name: 'lounge'},
-    card21: { type: 'room',   name: 'study'},
-
-    card22: {type: 'none', name: 'none'}
-  }
   
   constructor() {
     makeAutoObservable(this, { autoBind: true });
+  }
 
-    this.order = ["player1", "player2"];
-    this.fullOrder = ["player1", "player2"]
-    this.players = {
-      player1: {
-          id: 'player1',
-          loc: 'room1',
-          color: 'red',
-          cards: [],
-          canSuggest: false
-      },
-      player2: {
-          id: 'player2',
-          loc: 'room2',
-          color: 'blue',
-          cards: [],
-          canSuggest: false
-      },
+  // query data
+
+  syncData() {
+    // this.reset(); // hannah's wonderful reset button
+    this.syncGame();
+    this.syncCards();
+    this.syncPlayers()
+    this.syncWeapons();
+    this.syncSuggestion();
+  }
+
+  async reset() {
+      this.resetGame();
+      this.resetCards();
+      this.resetSuggestion();
+      this.resetWeapons();
+      // this.deleteAllPlayers();
+
+      // values for testing purposes
+      this.deletePlayer('hannah1');
+      this.setPlayerLocation('player1', 'room1');
+      this.setPlayerLocation('player2', 'room2');
+      this.setCanMove('player1', true);
+      this.setCanMove('player2', true);
+      this.setCanSuggestion('player1', false);
+      this.setCanSuggestion('player2', false);
+
+  }
+
+  // game queries
+
+  async syncGame() {
+    const { data, error } = await supabase.from("games")
+      .select().single();
+
+    if (data) {
+      this.turn = data.turn;
+      this.mode = data.mode;
     }
-    this.solution = []
+    // this.turn = data.turn;
+    // this.mode = data.mode;
+    // this.gameId = data.id;
+  }
+
+  async resetGame() {
+    const gameId = this.getGameId();
+    const { error } = await supabase.from("games")
+      .update({turn: 0, mode: 'lobby'})
+      .eq('id', gameId)
+  }
+
+  async setGameMode(mode) {
+    const gameId = this.getGameId();
+    const { error } = await supabase.from("games")
+      .update({mode: mode})
+      .eq('id', gameId)
+  }
+
+  async setTurn(turn) {
+    const id = this.getGameId();
+    const { error } = await supabase.from("games")
+      .update({turn: turn})
+      .eq('id', id)
+  }
+
+  // card queries
+  
+  async syncCards() {
+    const { data, error } = await supabase.from("cards").select()
+    if (data) {
+      this.cards = data;
+    }
+  }
+
+  async resetCards() {
+    const { error } = await supabase.from("cards")
+      .update({player_id: null})
+      .not('player_id', 'is', null)
+  }
+
+  // player queries
+
+  async setCardPlayerId(cardId, playerId) {
+    const { error } = await supabase.from("cards")
+      .update({player_id: playerId})
+      .eq('id', cardId);
+  }
+
+  async syncPlayers() {
+    const { data, error } = await supabase.from("players").select()
+    const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+    if (data) {
+      const ordered = data.sort(
+        (player, other) => {
+          const pIdx = colors.indexOf(player.color);
+          const oIdx = colors.indexOf(other.color);
+          return pIdx - oIdx;
+        }
+      )
+      this.players = ordered;
+    }
+  }
+
+  async deleteAllPlayers() {
+    const { error } = await supabase.from("players")
+      .delete()
+      .not('id', 'is', null)
+  }
+
+  async addPlayer(id, color) {
+    const loc = this.getNextRoom();
+    const canSuggest = false;
+    const canMove = true;
+    const { data, error } = await supabase
+      .from('players')
+      .insert({id: id, loc: loc, color: color, can_suggest: canSuggest, can_move: canMove})
+    console.log(data);
+  }
+
+  async setCanMove(playerId, canMove) {
+    const { error } = await supabase.from("players")
+      .update({can_move: canMove})
+      .eq('id', playerId)
+  }
+  
+  async deletePlayer(playerId) {
+    const { error } = await supabase.from("players")
+      .delete()
+      .eq('id', playerId)
+  }
+
+  async setPlayerLocation(playerId, loc) {
+    const { error } = await supabase.from("players")
+      .update({loc: loc})
+      .eq('id', playerId)
+  }
+
+  async setCanSuggestion(playerId, canSuggest) {
+    const { error } = await supabase.from("players")
+      .update({can_suggest: canSuggest})
+      .eq('id', playerId)
+  }
+
+  // weapon queries
+
+  async syncWeapons() {
+    const { data, error} = await supabase.from("weapons").select()
+    if (data) {
+      this.weapons = data;
+    }
+  }
+
+  async setWeaponLocation(weaponId, loc) {
+    const { error } = await supabase.from("weapons")
+      .update({loc: loc})
+      .eq('id', weaponId)
+  }
+
+  async resetWeapons() {
+    this.setWeaponLocation('weapon1', 'room1');
+    this.setWeaponLocation('weapon2', 'room2');
+    this.setWeaponLocation('weapon3', 'room3');
+    this.setWeaponLocation('weapon4', 'room4');
+    this.setWeaponLocation('weapon5', 'room5');
+    this.setWeaponLocation('weapon6', 'room6');
+  }
+
+  // suggestion queries
+
+  async syncSuggestion() {
+    const { data, error} = await supabase.from("suggestions").select().maybeSingle()
+    if (data) {
+      this.suggestion = data;
+    }
+  }
+
+  async resetSuggestion() {
+    const { error } = await supabase.from("suggestions")
+      .update({player: null, weapon: null, room: null, person: null, 
+              counter: null, mode: 'S'})
+      .not('id', 'is', null)
+  }
+
+  async setSuggestionMode(mode) {
+    const { error } = await supabase.from("suggestions")
+      .update({mode: mode})
+      .not('id', 'is', null)
+  }
+
+  async setSuggestionPlayer(playerId) {
+    const { error } = await supabase.from("suggestions")
+      .update({player_id: playerId})
+      .not('id', 'is', null)
+  }
+
+  async setSuggestion(weapon, room, person) {
+    const { error } = await supabase.from("suggestions")
+      .update({weapon: weapon, room: room, person: person})
+      .not('id', 'is', null)
+  }
+
+  async setCounter(counter) {
+    const { error } = await supabase.from("suggestions")
+      .update({counter: counter})
+      .not('id', 'is', null)
+  }
+
+  // end of querying
+
+
+  // game functions
+  startGame() {
+    this.assignCards();
+    this.setGameMode('board');
+  }
+
+  newGame() {
+    this.reset();
+  }
+
+  getGameId() {
+    this.syncGame();
+    const id = this.gameId;
+    if (id) {
+      return this.gameId;
+    } else {
+      return 0;
+    }
+  }
+
+  getGameMode() {
+    this.syncGame();
+    const mode = this.mode;
+    if (mode) {
+      return mode;
+    } else {
+      return '';
+    }
+  }
+
+  getTurn() {
+    this.syncGame();
+    const turn = this.turn;
+    if (turn) {
+      return turn;
+    } else {
+      return 0;
+    }
+  }
+
+  updateTurn() {
+    let turn = this.getTurn();
+    let players = this.getPlayers();
+    let mode = this.getGameMode();
+    let canMove = false;
+    if (players.length > 0) {
+      while (!canMove) {
+        turn += 1;
+        turn = turn % players.length;
+        let player = players[turn];
+        canMove = (mode === 'suggestion') || player.can_move;
+      }
+      this.setTurn(turn);
+    }
+  }
+
+
+  // player functions
+  getPlayers() {
+    const players = this.players;
+    if (players) {
+      return players;
+    } else {
+      return [];
+    }
+  }
+
+  getPlayerIndex(id) {
+    let players = this.getPlayers();
+    for (const idx in players) {
+      let player = players[idx];
+      if (player.id === id) {
+        return idx;
+      }
+    }
+    return -1;
+  }
+  
+
+  getPlayerById(id) {
+    let players = this.getPlayers();
+    for (const player of players) {
+      if (player.id === id) {
+        return player;
+      }
+    }
+    return {};
+  }
+
+  getPlayerByColor(color) {
+    let players = this.getPlayers();
+    for (const player of players) {
+      if (player.color === color) {
+        return player;
+      }
+    }
+    return {};
+  }
+
+  getCurrentPlayer() {
+    let turn = this.getTurn();
+    let players = this.getPlayers();
+    if (turn < players.length && turn > -1) {
+      const player = players[turn];
+      if (!player.can_move) {
+        this.setGameMode('done');
+      }
+      return player;
+    }
+    return {};
+  }
+
+  canSuggest() {
+    let player = this.getCurrentPlayer();
+    return player.can_suggest;
+  }
+
+  validatePlayer(id) {
+    let players = this.getPlayers();
+    return !players.includes(id);
+  }
+
+  removePlayer() {
+    let player = this.getSuggestionPlayer();
+    if (player) {
+      let playerId = player.id;
+      this.setCanMove(playerId, false);
+      this.syncPlayers();
+      let players = this.getPlayers();
+      players.filter( player => player.can_move);
+      if (players.length === 0) {
+        this.setGameMode('done');
+      }
+    }
+  }
+
+  setLocation(loc) {
+    const player = this.getCurrentPlayer();
+    if (player && this.isAdjacent(player, loc)) {
+      this.setPlayerLocation(player.id, loc);
+      this.updateTurn();
+      this.setCanSuggestion(player.id, true);
+    }
+  }
+
+  // weapon functions
+  getWeapons() {
+    const weapons = this.weapons;
+    if (weapons) {
+      return weapons;
+    } else {
+      return [];
+    }
+  }
+
+  getWeaponByName(name) {
+    let weapons = this.getWeapons();
+    for (const weapon of weapons) {
+      if (weapon.name === name) {
+        return weapon;
+      }
+    }
+    return {};
+  }
+  
+  // card functions
+
+  getCards() {
+    const cards = this.cards;
+    if (cards) {
+      return cards;
+    } else {
+      return [];
+    }
+  }
+
+  getSolution() {
+    let cards = [];
+    let all = this.getCards();
+    for (const card of all) {
+      if (card.player_id === null && card.type !== 'none') {
+        cards.push(card)
+      }
+    }
+    return cards;
+  }
+
+  getCardById(id) {
+    let cards = this.getCards();
+    for (const card of cards) {
+      if (card.id === id) {
+        return card;
+      }
+    }
+    return;
+  }
+
+  getCardByName(name) {
+    let cards = this.getCards();
+    for (const card of cards) {
+      if (card.name === name) {
+        return card;
+      }
+    }
+    return;
+  }
+
+  getCardsByType(type) {
+    let cards = [];
+    let all = this.getCards();
+    for (const card of all) {
+      if (card.type === type) {
+        cards.push(card)
+      }
+    }
+    return cards;
+  }
+
+  getCardsByPlayer(playerId) {
+    let cards = [];
+    for (let card of this.getCards()) {
+      if (card.player_id === playerId) {
+        cards.push(card);
+      }
+    }
+    return cards;
+  }
+
+  getPlayerCards() {
+    let cards = [];
+    let curr = this.getCurrentPlayer();
+    if (curr.id) {
+      cards = this.getCardsByPlayer(curr.id);
+    }
+    return cards;
   }
 
   getRandomCard(cards) {
@@ -126,325 +516,104 @@ export default class App {
   }
 
   assignCards() {
-    let cardIds = Object.keys(this.cards);
-    let rooms = cardIds.filter(id => this.cards[id].type === 'room');
-    let persons = cardIds.filter(id => this.cards[id].type === 'person');
-    let weapons = cardIds.filter(id => this.cards[id].type === 'weapon');
+    // this.resetCards();
+    let rooms = this.getCardsByType('room');
+    let persons = this.getCardsByType('person');
+    let weapons = this.getCardsByType('weapon');
 
     let room = this.getRandomCard(rooms);
     let person = this.getRandomCard(persons);
     let weapon = this.getRandomCard(weapons);
-    this.solution = [person, weapon, room];
+    this.solution = [person.id, weapon.id, room.id];
 
     let i = 0;
+    let players = this.getPlayers();
     while (rooms.length > 0) {
-      let playerId = this.order[i];
-      let player = this.players[playerId];
+      let playerId = players[i].id;
       room = this.getRandomCard(rooms);
-      player.cards.push(room);
+      this.setCardPlayerId(room.id, playerId);
       i++;
-      if (i >= this.order.length) {
+      if (i >= this.getPlayers().length) {
         i = 0;
       }
     }
 
     while (weapons.length > 0) {
-      let playerId = this.order[i];
-      let player = this.players[playerId];
+      let playerId = players[i].id;
       weapon = this.getRandomCard(weapons);
-      player.cards.push(weapon)
+      this.setCardPlayerId(weapon.id, playerId);
       i++;
-      if (i >= this.order.length) {
+      if (i >= this.getPlayers().length) {
         i = 0;
       }
     }
 
     while (persons.length > 0) {
-      let playerId = this.order[i];
-      let player = this.players[playerId];
+      let playerId = players[i].id;
       person = this.getRandomCard(persons);
-      player.cards.push(person)
+      this.setCardPlayerId(person.id, playerId);
       i++;
-      if (i >= this.order.length) {
+      if (i >= this.getPlayers().length) {
         i = 0;
       }
     }
-
   }
 
-  getNextRoom() {
-    let size = this.order.length;
-    return `room${size+1}`
-  }
-
-  validatePlayer(id) {
-    return !(this.order.includes(id));
-  }
-
-  addPlayer(id, color) {
-    let loc = this.getNextRoom();
-    let player = {
-      id: id,
-      loc: loc,
-      color: color,
-      cards: [],
-      canSuggest: false,
-    }
-    this.players[id] = player;
-    this.order.push(id);
-    this.fullOrder.push(id);
-  }
-
-  setMode(mode) {
-    this.mode = mode;
-  }
-
-  startGame() {
-    this.assignCards();
-    this.setMode('board');
-  }
-
-  newGame() {
-    this.turn = 0;
-    this.order = [];
-    this.players = {};
-    this.solution = [];
-    this.mode = 'lobby'
-
-    this.suggestion = {
-      player: '',
-      cards: [],
-      counter: '',
-      mode: ''
+  // location functions
+  getRoomName(id) {
+    const locations = this.locations;
+    if (id in locations) {
+      return locations[id].name;
+    } else {
+      return '';
     }
   }
 
-  getMode() {
-    return this.mode;
-  }
 
-  updateTurn() {
-    let turn = this.turn;
-    turn += 1;
-    turn = turn % this.order.length;
-    this.turn = turn;
-  }
-
-  updateSuggestionTurn() {
-    let turn = this.turn;
-    turn += 1;
-    turn = turn % this.fullOrder.length;
-    this.turn = turn;
-  }
-
-  setLocation(loc) {
-    if (this.isAdjacent(loc)) {
-        let players = this.players;
-        let id = this.order[this.turn];
-        let player = this.getCurrentPlayer();
-        player.loc = loc;
-        player.canSuggest = true;
-        players[id] = player;
-        this.players = players;
-        this.updateTurn();
-    }
-  }
-
-  getCardByName(name) {
-    let cardId;
-      for (const[id, card] of Object.entries(this.cards)) {
-          if (card.name === name) {
-              cardId = id;
-          }
+  getPlayersAt(loc) {
+    const all = this.getPlayers();
+    let players = [];
+    for (let player of all) {
+      if (player.loc === loc) {
+        players.push(player);
       }
-      return cardId;
+    }
+    return players;
+  }
+
+  getWeaponsAt(loc) {
+    const all = this.getWeapons();
+    let weapons = [];
+    for (let weapon of all) {
+      if (weapon.loc === loc) {
+        weapons.push(weapon);
+      }
+    }
+    return weapons;
+  }
+
+  isAdjacent(player, loc) {
+    if (player.loc) {
+      let curr = this.locations[player.loc];
+      return curr.adj.includes(loc);
+    } else {
+      return false;
+    }
   }
 
   inRoom() {
     let player = this.getCurrentPlayer();
-    let loc = this.locations[player.loc];
-    return loc.type === 'room';
-  }
-
-  getCurrentPlayer() {
-    let playerId = this.order[this.turn];
-    return this.players[playerId];
-  }
-
-  getCurrentSuggestionPlayer() {
-    let playerId = this.fullOrder[this.turn];
-    return this.players[playerId];
-  }
-
-  getSuggestionPlayerCards() {
-    let player = this.getCurrentSuggestionPlayer();
-    let cards = [];
-    for (let card of player.cards) {
-      cards.push(this.cards[card]);
-    }
-    return cards;
-  }
-
-  getPlayerCards() {
-    let player = this.getCurrentPlayer();
-    let cards = [];
-    for (let card of player.cards) {
-      cards.push(this.cards[card]);
-    }
-    return cards;
-  }
-
-  getSuggestionCards() {
-    let cards = [];
-    let suggestion = this.suggestion;
-    if (suggestion.cards) {
-      for (let card of suggestion.cards) {
-        cards.push(this.cards[card]);
-      }
-    }
-    return cards;
-  }
-
-  getCounterCard() {
-    let card;
-    if (this.suggestion.counter) {
-      card = this.cards[this.suggestion.counter];
-    }
-    return card;
-  }
-
-  getSuggestionPlayer() {
-    let player;
-    let suggestion = this.suggestion;
-    if (suggestion) {
-      let id = suggestion.player;
-      player = this.players[id];
-    }
-    return player;
-  }
-
-  getPlayersAt(loc) {
-      let players = [];
-      for (const[id, value] of Object.entries(this.players)) {
-          if (value.loc === loc) {
-              players.push(value);
-          }
-      }
-      return players;
-  }
-
-  getWeaponsAt(loc) {
-    let weapons = [];
-    for (const[id, value] of Object.entries(this.weapons)) {
-        if (value.loc === loc) {
-            weapons.push(value);
-        }
-    }
-    return weapons;
-}
-
-  isAdjacent(loc) {
-      let player = this.getCurrentPlayer();
-      let curr = this.locations[player.loc];
-      return curr.adj.includes(loc);
-  }
-
-  startSuggestion() {
-    this.suggestion.player = this.getCurrentPlayer().id;
-    this.turn = this.fullOrder.indexOf(this.suggestion.player);
-    this.suggestion.mode = 'S';
-    this.setMode('suggestion');
-  }
-
-  validateAccusation() {
-    let cards = this.suggestion.cards;
-    let correct = true;
-
-    for (let card of cards) {
-      if (!this.solution.includes(card)) {
-        correct = false;
-      }
-    }
-    if (correct) {
-      this.suggestion.mode = 'W';
+    if (player.loc) {
+      let loc = this.locations[player.loc];
+      return loc.type === 'room';
     } else {
-      this.suggestion.mode = 'F';
+      return false;
     }
   }
 
-  startAccusation() {
-    let player = this.getCurrentPlayer();
-    this.suggestion.player = player.id;
-    this.suggestion.mode = 'A';
-    this.setMode('suggestion');
-  }
-
-  getOrder(name) {
-    let player = -1;
-    for (let p = 0; p < this.order.length; p++) {
-      if (this.order[p] === name) {
-        return p;
-      }
-    }
-    return player;
-  }
-
-  endSuggestion() {
-    this.setMode('board');
-    this.turn = this.getOrder(this.suggestion.player);
-    this.updateTurn();
-  }
-
-  removePlayer() {
-    let players = [];
-    let player = this.getSuggestionPlayer();
-    let curr = player.id;
-    for (let player of this.order) {
-      if (player !== curr) {
-        players.push(player);
-      }
-    }
-    this.order = players;
-    if (players.length === 0) {
-      this.setMode('done');
-    }
-  }
-
-  acknowledgeAccusation() {
-    if (this.suggestion.mode === 'W') {
-      this.setMode('done');
-    } else {
-      this.setMode('board');
-      this.removePlayer();
-    }
-    this.turn = this.turn % this.order.length;
-  }
-
-  acknowledgeCard() {
-    if (this.suggestion.counter === 'card22') {
-      let turn = this.turn;
-      let player = this.suggestion.player;
-      turn += 1;
-      turn = turn % this.fullOrder.length;
-      this.suggestion.mode = 'C';
-      if (this.fullOrder[turn] !== player) {
-        this.turn = turn;
-      } else {
-        this.endSuggestion();
-      }
-    } else {
-      this.endSuggestion();
-    }
-  }
-
-  getPlayerByColor(color) {
-    let player;
-    for (const[id, value] of Object.entries(this.players)) {
-      if (value.color === color) {
-        player = id;
-      }
-    }
-    return player;
+  getNextRoom() {
+    let size = this.getPlayers().length;
+    return `room${size+1}`
   }
 
   getRoomByName(name) {
@@ -457,23 +626,12 @@ export default class App {
     return room;
   }
 
-  getWeaponByName(name) {
-    let weapon;
-    for (const[id, value] of Object.entries(this.weapons)) {
-      if (value.name === name) {
-        weapon = id;
-      }
-    }
-    return weapon;
-  }
-
   moveCards(cards) {
     let location;
     let player;
     let weapon;
     for (let name of cards) {
-      let id = this.getCardByName(name);
-      let card = this.cards[id];
+      let card = this.getCardByName(name);
       if (card.type === 'person') {
         player = this.getPlayerByColor(name);
       } else if (card.type === 'room') {
@@ -483,30 +641,180 @@ export default class App {
       }
     }
     if (player && location) {
-      this.players[player].loc = location;
-      this.players[player].canSuggest = true;
+      this.setPlayerLocation(player.id, location);
+      this.setCanSuggestion(player.id, true);
     }
     if (weapon && location) {
-      this.weapons[weapon].loc = location;
+      this.setWeaponLocation(weapon.id, location);
     }
   }
 
+  // suggestion functions
+  getSuggestion() {
+    const suggestion = this.suggestion;
+    if (suggestion) {
+      return suggestion;
+    } else {
+      return {};
+    }
+  }
+
+  getSuggestionMode() {
+    const suggestion = this.getSuggestion();
+    if (suggestion.mode) {
+      return suggestion.mode;
+    } else {
+      return '';
+    }
+  }
+
+  getSuggestionCards() {
+    const suggestion = this.getSuggestion();
+    let cardKeys = ['weapon', 'room', 'person'];
+    let cards = [];
+    for (let key of cardKeys) {
+      let cardId = suggestion[key];
+      if (cardId) {
+        let card = this.getCardById(cardId);
+        cards.push(card);
+      }
+    }
+    return cards;
+  }
+
+  getCounterCard() {
+    let suggestion = this.getSuggestion();
+    let counter = suggestion.counter;
+    if (counter) {
+      return this.getCardById(counter);
+    }
+    return;
+  }
+
+  getSuggestionPlayer() {
+    let suggestion = this.getSuggestion();
+    let playerId = suggestion.player_id;
+    if (playerId) {
+      return this.getPlayerById(playerId);
+    }
+    return;
+  }
+
+  getSuggestionPlayerLoc() {
+    const player = this.getSuggestionPlayer();
+    if (player) {
+      return player.loc
+    } else {
+      return '';
+    }
+  }
+
+  getSuggestionPlayerTurn() {
+    let player = this.getSuggestionPlayer();
+    let turn = this.getPlayerIndex(player.id);
+    return turn;
+  }
+
+  startSuggestion() {
+    let playerId = this.getCurrentPlayer().id;
+    this.setSuggestionPlayer(playerId);
+    this.setSuggestionMode('S');
+    this.setGameMode('suggestion');
+    // this.turn = this.fullOrder.indexOf(this.suggestion.player);
+  }
+
+  validateAccusation() {
+    let cards = this.getSuggestionCards();
+    let solution = this.getSolution();
+    let correct = true;
+
+    for (let card of cards) {
+      if (!solution.includes(card)) {
+        correct = false;
+      }
+    }
+    if (correct) {
+      this.setSuggestionMode('W');
+    } else {
+      this.setSuggestionMode('F');
+    }
+  }
+
+  startAccusation() {
+    let player = this.getCurrentPlayer();
+    this.setSuggestionPlayer(player.id);
+    this.setSuggestionMode('A');
+    this.setGameMode('suggestion');
+  }
+
+  endSuggestion() {
+    this.setGameMode('board');
+    this.setTurn(this.getSuggestionPlayerTurn());
+    this.updateTurn();
+  }
+
+  acknowledgeAccusation() {
+    const mode = this.getSuggestionMode();
+    if (mode === 'W') {
+      this.setGameMode('done');
+    } else {
+      this.setGameMode('board');
+      this.removePlayer();
+    }
+    this.updateTurn();
+  }
+
+  acknowledgeCard() {
+    const counter = this.getCounterCard();
+    const players = this.getPlayers();
+    if (counter === 'card22') {
+      let turn = this.getTurn();
+      let player = this.getSuggestionPlayer();
+      // this.updateTurn();
+      this.setSuggestionMode('C');
+      turn += 1;
+      turn = turn % players.length;
+      if (player !== players[turn]) {
+        this.setTurn(turn);
+      } else {
+        this.endSuggestion();
+      }
+    } else {
+      this.endSuggestion();
+    }
+  }
+
+  parseSuggestion(cardNames) {
+    let suggestion = {
+      weapon: null,
+      room: null,
+      person: null,
+    }
+    let cards = cardNames.map( name => this.getCardByName(name));
+    for (let card of cards) {
+      suggestion[card.type] = card.id;
+    }
+    return suggestion;
+  }
+
   submitSuggestion(cards) {
-    let ids = cards.map(card => this.getCardByName(card));
-    this.suggestion.cards = ids;
-    this.getCurrentPlayer().canSuggest = false;
-    if (this.suggestion.mode === 'S') {
+    let mode = this.getSuggestionMode();
+    const suggestion = this.parseSuggestion(cards);
+    this.setSuggestion(suggestion.weapon, suggestion.room, suggestion.person);
+    const currId = this.getCurrentPlayer().id;
+    this.setCanSuggestion(currId, false);
+    if (mode === 'S') {
       this.moveCards(cards);
-      this.suggestion.mode = 'C';
-      this.updateSuggestionTurn();
-    } else if (this.suggestion.mode === 'A') {
+      this.setSuggestionMode('C');
+      this.updateTurn();
+    } else if (mode === 'A') {
       this.validateAccusation();
     }
   }
   
   submitCard(name) {
     let card = this.getCardByName(name);
-    this.suggestion.counter = card;
-    this.suggestion.mode = 'V';
+    this.setCounter(card.id);
+    this.setSuggestionMode('V');
   }
 }
