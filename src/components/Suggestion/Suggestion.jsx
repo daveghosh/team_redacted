@@ -8,9 +8,11 @@ import SelectCards from "../Cards/SelectCards";
 
 class Suggestion extends React.Component {
     messages = {
-        C: ' is currently choosing a card',
-        V: ' is currently viewing a card',
-        N: ' was unable to provide a card',
+        S: ' is currently making a suggestion',
+        A: ' is currently making an accusation',
+        C: ' is currently choosing a counter card',
+        N: ' was unable to submit a counter card',
+        V: ' is currently viewing the counter card submitted by ',
         W: ' has made a correct accusation!',
         F: ' has made a false accusation',
     }
@@ -33,7 +35,7 @@ class Suggestion extends React.Component {
         if (mode === 'C') {
             status = `${currId}${this.messages.C}`
         } else if (mode === 'V') {
-            status = `${sugId}${this.messages.V}`
+            status = `${sugId}${this.messages.V}${currId}`
         } else if (mode === 'N') {
             status = `${currId}${this.messages.N}`
         } else {
@@ -57,10 +59,16 @@ class Suggestion extends React.Component {
         
         let content;
         let header;
-        if (['S', 'A'].includes(mode)) {
+
+        const isActive = this.store.isActive();
+        const isSugg = this.store.isSuggestionPlayer();
+
+        // Active Player is Making a Suggestion
+        if (['S', 'A'].includes(mode) && isActive) {
             content = (
                 <SelectCards/>
             )
+
         } else {
             header = (
                 <div className="suggestion-cards">
@@ -72,18 +80,17 @@ class Suggestion extends React.Component {
                     </div>
                 </div>
             )
-            if (mode === 'C') {
+
+            // Active Player is Making a Counter Suggestion
+            if (isActive && mode === 'C') {
                 content = (
                     <CounterCards cards={playerCards} suggestion={suggestionCards}/>
                 );
-            } else if (mode === 'V') {
-                content = (
-                    <ViewCard card={counterCard} player={player}/>
-                )
-            } else if (['C', 'V', 'N'].includes(mode)){
-                content = (
-                    <span className="status">{status}</span>);
-            } else if (['W', 'F'].includes(mode)) {
+            // Suggesting Player is Viewing Counter Suggestion
+            } else if (isSugg && mode === 'V') {
+                content = ( <ViewCard card={counterCard} player={player}/> );
+            // Suggestion Player is Acknowledging Accusation Result
+            } else if (isSugg && ['W', 'F'].includes(mode)) {
                 content = (
                     <div className='accuse-status'>
                          <span className="status">{status}</span>
@@ -91,6 +98,9 @@ class Suggestion extends React.Component {
                             Okay
                         </div>
                     </div>);
+            } else {
+                header = null;
+                content = ( <span className="status center-status">{status}</span> );
             }
         }
         

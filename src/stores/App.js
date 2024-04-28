@@ -6,8 +6,14 @@ const PROJECT_URL = 'https://omdvfmknrfqpoeebpnfd.supabase.co'
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tZHZmbWtucmZxcG9lZWJwbmZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMxOTYwNjUsImV4cCI6MjAyODc3MjA2NX0.kfomW6iWicmLnvghJvegc1duqCFO0w7trFEIqEKZYvQ';
 const supabase = createClient(PROJECT_URL, ANON_KEY);
 
-export default class App {
+// Table names
+const GAMES_TABLE = 'games_hannah';
+const PLAYERS_TABLE = 'players_hannah';
+const WEAPONS_TABLE = 'weapons_hannah';
+const CARDS_TABLE = 'cards_hannah';
+const SUG_TABLE = 'suggestions_hannah';
 
+export default class App {
   gameId = 1;
   session = null;
   turn = 0;
@@ -64,7 +70,7 @@ export default class App {
       {
         event: 'UPDATE',
         schema: 'public',
-        table: 'games',
+        table: GAMES_TABLE,
       },
       (payload) => {
         const data = payload.new;
@@ -77,7 +83,7 @@ export default class App {
       {
         event: 'UPDATE',
         schema: 'public',
-        table: 'suggestions',
+        table: SUG_TABLE,
       },
       (payload) => {
         const data = payload.new;
@@ -89,7 +95,7 @@ export default class App {
       {
         event: '*',
         schema: 'public',
-        table: 'players',
+        table: PLAYERS_TABLE,
       },
       (payload) => {
         this.syncPlayers();
@@ -100,7 +106,7 @@ export default class App {
       {
         event: 'UPDATE',
         schema: 'public',
-        table: 'weapons',
+        table: WEAPONS_TABLE
       },
       (payload) => {
         this.syncWeapons();
@@ -111,7 +117,7 @@ export default class App {
       {
         event: 'UPDATE',
         schema: 'public',
-        table: 'cards',
+        table: CARDS_TABLE,
       },
       (payload) => {
         this.syncCards();
@@ -136,26 +142,15 @@ export default class App {
 
   async reset() {
       this.resetGame();
-      this.resetCards();
       this.resetSuggestion();
       this.resetWeapons();
-      // this.deleteAllPlayers();
-
-      // values for testing purposes
-      this.deletePlayer('hannah1');
-      this.setPlayerLocation('player1', 'room1');
-      this.setPlayerLocation('player2', 'room2');
-      this.setCanMove('player1', true);
-      this.setCanMove('player2', true);
-      this.setCanSuggestion('player1', false);
-      this.setCanSuggestion('player2', false);
-
+      this.deleteAllPlayers()
   }
 
   // game queries
 
   async syncGame() {
-    const { data, error } = await supabase.from("games")
+    const { data, error } = await supabase.from(GAMES_TABLE)
       .select().single();
 
     if (data) {
@@ -167,21 +162,21 @@ export default class App {
 
   async resetGame() {
     const gameId = this.getGameId();
-    const { error } = await supabase.from("games")
+    const { error } = await supabase.from(GAMES_TABLE)
       .update({turn: 0, mode: 'lobby'})
       .eq('id', gameId)
   }
 
   async setGameMode(mode) {
     const gameId = this.getGameId();
-    const { error } = await supabase.from("games")
+    const { error } = await supabase.from(GAMES_TABLE)
       .update({mode: mode})
       .eq('id', gameId)
   }
 
   async setTurn(turn) {
     const id = this.getGameId();
-    const { error } = await supabase.from("games")
+    const { error } = await supabase.from(GAMES_TABLE)
       .update({turn: turn})
       .eq('id', id)
   }
@@ -191,7 +186,7 @@ export default class App {
   // cards do not change after being assigned
   async syncCards() {
     if (!this.cardsCached) {
-      const { data, error } = await supabase.from("cards").select()
+      const { data, error } = await supabase.from(CARDS_TABLE).select()
       if (data) {
         this.cards = data;
         if (data.filter(card => card.player_id !== null).length > 0) {
@@ -202,7 +197,7 @@ export default class App {
   }
 
   async resetCards() {
-    const { error } = await supabase.from("cards")
+    const { error } = await supabase.from(CARDS_TABLE)
       .update({player_id: null})
       .not('player_id', 'is', null)
   }
@@ -210,13 +205,19 @@ export default class App {
   // player queries
 
   async setCardPlayerId(cardId, playerId) {
-    const { error } = await supabase.from("cards")
+    const { error } = await supabase.from(CARDS_TABLE)
       .update({player_id: playerId})
       .eq('id', cardId);
   }
 
+  async batchSetPlayerId(playerId, cardIds) {
+    const { error } = await supabase.from(CARDS_TABLE)
+      .update({player_id: playerId})
+      .in('id', cardIds)
+  }
+
   async syncPlayers() {
-    const { data, error } = await supabase.from("players").select()
+    const { data, error } = await supabase.from(PLAYERS_TABLE).select()
     const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
     if (data) {
       const ordered = data.sort(
@@ -231,7 +232,7 @@ export default class App {
   }
 
   async deleteAllPlayers() {
-    const { error } = await supabase.from("players")
+    const { error } = await supabase.from(PLAYERS_TABLE)
       .delete()
       .not('id', 'is', null)
   }
@@ -241,31 +242,31 @@ export default class App {
     const canSuggest = false;
     const canMove = true;
     const { data, error } = await supabase
-      .from("players")
+      .from(PLAYERS_TABLE)
       .insert({id: id, loc: loc, color: color, can_suggest: canSuggest, can_move: canMove})
     this.session = id;
   }
 
   async setCanMove(playerId, canMove) {
-    const { error } = await supabase.from("players")
+    const { error } = await supabase.from(PLAYERS_TABLE)
       .update({can_move: canMove})
       .eq('id', playerId)
   }
   
   async deletePlayer(playerId) {
-    const { error } = await supabase.from("players")
+    const { error } = await supabase.from(PLAYERS_TABLE)
       .delete()
       .eq('id', playerId)
   }
 
   async setPlayerLocation(playerId, loc) {
-    const { error } = await supabase.from("players")
+    const { error } = await supabase.from(PLAYERS_TABLE)
       .update({loc: loc})
       .eq('id', playerId)
   }
 
   async setCanSuggestion(playerId, canSuggest) {
-    const { error } = await supabase.from("players")
+    const { error } = await supabase.from(PLAYERS_TABLE)
       .update({can_suggest: canSuggest})
       .eq('id', playerId)
   }
@@ -273,14 +274,14 @@ export default class App {
   // weapon queries
 
   async syncWeapons() {
-    const { data, error} = await supabase.from("weapons").select()
+    const { data, error} = await supabase.from(WEAPONS_TABLE).select()
     if (data) {
       this.weapons = data;
     }
   }
 
   async setWeaponLocation(weaponId, loc) {
-    const { error } = await supabase.from("weapons")
+    const { error } = await supabase.from(WEAPONS_TABLE)
       .update({loc: loc})
       .eq('id', weaponId)
   }
@@ -297,45 +298,61 @@ export default class App {
   // suggestion queries
 
   async syncSuggestion() {
-    const { data, error} = await supabase.from("suggestions").select().maybeSingle()
+    const { data, error} = await supabase.from(SUG_TABLE).select().maybeSingle()
     if (data) {
       this.suggestion = data;
     }
   }
 
   async resetSuggestion() {
-    const { error } = await supabase.from("suggestions")
-      .update({player: null, weapon: null, room: null, person: null, 
+    const gameId = this.getGameId();
+    const { error } = await supabase.from(SUG_TABLE)
+      .update({player_id: null, weapon: null, room: null, person: null, 
               counter: null, mode: 'S'})
-      .not('id', 'is', null)
+      .eq('id', gameId)
   }
 
   async setSuggestionMode(mode) {
-    const { error } = await supabase.from("suggestions")
+    const gameId = this.getGameId();
+    const { error } = await supabase.from(SUG_TABLE)
       .update({mode: mode})
-      .not('id', 'is', null)
+      .eq('id', gameId)
   }
 
   async setSuggestionPlayer(playerId) {
-    const { error } = await supabase.from("suggestions")
+    const gameId = this.getGameId();
+    const { error } = await supabase.from(SUG_TABLE)
       .update({player_id: playerId})
-      .not('id', 'is', null)
+      .eq('id', gameId)
   }
 
   async setSuggestion(weapon, room, person) {
-    const { error } = await supabase.from("suggestions")
+    const gameId = this.getGameId();
+    const { error } = await supabase.from(SUG_TABLE)
       .update({weapon: weapon, room: room, person: person})
-      .not('id', 'is', null)
+      .eq('id', gameId)
   }
 
   async setCounter(counter) {
-    const { error } = await supabase.from("suggestions")
+    const gameId = this.getGameId();
+    const { error } = await supabase.from(SUG_TABLE)
       .update({counter: counter})
-      .not('id', 'is', null)
+      .eq('id', gameId)
   }
 
   // end of querying
 
+
+  // debug function
+  isValidState() {
+    const mode = this.mode;
+    const session = this.session
+    if (mode !== 'lobby' && session === null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 
   // game functions
   startGame() {
@@ -461,6 +478,20 @@ export default class App {
     return {};
   }
 
+  isActive() {
+    const curr = this.getCurrentPlayer();
+    return curr.id === this.session;
+  }
+
+  isSuggestionPlayer() {
+    const player = this.getSuggestionPlayer();
+    if (player) {
+      return player.id === this.session;
+    } else {
+      return false;
+    }
+  }
+
   getCurrentPlayer() {
     let turn = this.getTurn();
     let players = this.getPlayers();
@@ -476,7 +507,7 @@ export default class App {
 
   canSuggest() {
     let player = this.getCurrentPlayer();
-    return player.can_suggest;
+    return player.can_suggest && this.isActive();
   }
 
   validatePlayer(id) {
@@ -587,9 +618,9 @@ export default class App {
 
   getPlayerCards() {
     let cards = [];
-    let curr = this.getCurrentPlayer();
-    if (curr.id) {
-      cards = this.getCardsByPlayer(curr.id);
+    let curr = this.session;
+    if (curr) {
+      cards = this.getCardsByPlayer(curr);
     }
     return cards;
   }
@@ -603,7 +634,7 @@ export default class App {
   }
 
   assignCards() {
-    // this.resetCards();
+    console.log("Assigning cards");
     let rooms = this.getCardsByType('room');
     let persons = this.getCardsByType('person');
     let weapons = this.getCardsByType('weapon');
@@ -613,12 +644,16 @@ export default class App {
     let weapon = this.getRandomCard(weapons);
     this.solution = [person.id, weapon.id, room.id];
 
-    let i = 0;
     let players = this.getPlayers();
+    let cardMap = {};
+    players.forEach( player => cardMap[player.id] = []);
+
+    let i = 0;
+    let card;
     while (rooms.length > 0) {
       let playerId = players[i].id;
-      room = this.getRandomCard(rooms);
-      this.setCardPlayerId(room.id, playerId);
+      card = this.getRandomCard(rooms);
+      cardMap[playerId].push(card.id);
       i++;
       if (i >= this.getPlayers().length) {
         i = 0;
@@ -627,8 +662,8 @@ export default class App {
 
     while (weapons.length > 0) {
       let playerId = players[i].id;
-      weapon = this.getRandomCard(weapons);
-      this.setCardPlayerId(weapon.id, playerId);
+      card = this.getRandomCard(weapons);
+      cardMap[playerId].push(card.id);
       i++;
       if (i >= this.getPlayers().length) {
         i = 0;
@@ -637,12 +672,17 @@ export default class App {
 
     while (persons.length > 0) {
       let playerId = players[i].id;
-      person = this.getRandomCard(persons);
-      this.setCardPlayerId(person.id, playerId);
+      card = this.getRandomCard(persons);
+      cardMap[playerId].push(card.id);
       i++;
       if (i >= this.getPlayers().length) {
         i = 0;
       }
+    }
+
+    for (const player of players) {
+      const cards = cardMap[player.id];
+      this.batchSetPlayerId(player.id, cards);
     }
   }
 
@@ -680,7 +720,9 @@ export default class App {
   }
 
   isAdjacent(player, loc) {
-    if (player.loc) {
+    if (player.id !== this.session) {
+      return false;
+    } else if (player.loc) {
       let curr = this.locations[player.loc];
       return curr.adj.includes(loc);
     } else {
@@ -899,6 +941,10 @@ export default class App {
   submitCard(name) {
     let card = this.getCardByName(name);
     this.setCounter(card.id);
-    this.setSuggestionMode('V');
+    if (card.id === 'card22') {
+      this.setSuggestionMode('N');
+    } else {
+      this.setSuggestionMode('V');
+    }
   }
 }
