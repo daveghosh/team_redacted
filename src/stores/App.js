@@ -852,7 +852,7 @@ export default class App {
   acknowledgeCard() {
     const counter = this.getCounterCard();
     const players = this.getPlayers();
-    if (counter === 'card22') {
+    if (counter.id === 'card22') {
       let turn = this.getTurn();
       let player = this.getSuggestionPlayer();
       this.setSuggestionMode('C');
