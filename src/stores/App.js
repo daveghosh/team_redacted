@@ -9,6 +9,7 @@ const supabase = createClient(PROJECT_URL, ANON_KEY);
 export default class App {
 
   gameId = 1;
+  session = null;
   turn = 0;
   mode = 'lobby'
 
@@ -55,6 +56,68 @@ export default class App {
     hall12: { type: 'hall', align: 'horizontal', adj: ["room8", "room9"]},
     room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
   }
+
+  channel = supabase
+    .channel('schema-db-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'games',
+      },
+      (payload) => {
+        const data = payload.new;
+        this.turn = data.turn;
+        this.mode = data.mode;
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'suggestions',
+      },
+      (payload) => {
+        const data = payload.new;
+        this.suggestion = data;
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'players',
+      },
+      (payload) => {
+        this.syncPlayers();
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'weapons',
+      },
+      (payload) => {
+        this.syncWeapons();
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'cards',
+      },
+      (payload) => {
+        this.syncCards();
+      }
+    )
+    .subscribe()
   
   constructor() {
     makeAutoObservable(this, { autoBind: true });
@@ -98,10 +161,8 @@ export default class App {
     if (data) {
       this.turn = data.turn;
       this.mode = data.mode;
+      this.gameId = data.id;
     }
-    // this.turn = data.turn;
-    // this.mode = data.mode;
-    // this.gameId = data.id;
   }
 
   async resetGame() {
@@ -127,10 +188,16 @@ export default class App {
 
   // card queries
   
+  // cards do not change after being assigned
   async syncCards() {
-    const { data, error } = await supabase.from("cards").select()
-    if (data) {
-      this.cards = data;
+    if (!this.cardsCached) {
+      const { data, error } = await supabase.from("cards").select()
+      if (data) {
+        this.cards = data;
+        if (data.filter(card => card.player_id !== null).length > 0) {
+          this.cardsCached = true;
+        }
+      }
     }
   }
 
@@ -174,9 +241,9 @@ export default class App {
     const canSuggest = false;
     const canMove = true;
     const { data, error } = await supabase
-      .from('players')
+      .from("players")
       .insert({id: id, loc: loc, color: color, can_suggest: canSuggest, can_move: canMove})
-    console.log(data);
+    this.session = id;
   }
 
   async setCanMove(playerId, canMove) {
@@ -281,28 +348,25 @@ export default class App {
   }
 
   getGameId() {
-    this.syncGame();
-    const id = this.gameId;
+    let id = this.gameId;
     if (id) {
-      return this.gameId;
+      return id;
     } else {
-      return 0;
+      return 1;
     }
   }
 
   getGameMode() {
-    this.syncGame();
-    const mode = this.mode;
+    let mode = this.mode;
     if (mode) {
-      return mode;
+      return mode
     } else {
-      return '';
+      return 'done';
     }
   }
-
+  
   getTurn() {
-    this.syncGame();
-    const turn = this.turn;
+    let turn = this.turn;
     if (turn) {
       return turn;
     } else {
@@ -310,11 +374,24 @@ export default class App {
     }
   }
 
+  canUpdateTurn() {
+    let players = this.getPlayers();
+    players.filter( player => player.can_move);
+    return players.length > 0;
+  }
+
   updateTurn() {
     let turn = this.getTurn();
     let players = this.getPlayers();
     let mode = this.getGameMode();
     let canMove = false;
+    let canUpdate = this.canUpdateTurn();
+
+    // prevent an infinite loop
+    if (!canUpdate) {
+      this.setGameMode('done');
+    }
+
     if (players.length > 0) {
       while (!canMove) {
         turn += 1;
@@ -326,10 +403,25 @@ export default class App {
     }
   }
 
+  updateSuggestionTurn() {
+    let turn = this.getSuggestionPlayerTurn();
+    let players = this.getPlayers();
+    let canMove = false;
+    if (players.length > 0) {
+      while (!canMove) {
+        turn += 1;
+        turn = turn % players.length;
+        let player = players[turn];
+        canMove = player.can_move;
+      }
+      this.setTurn(turn);
+    }
+  }
+
 
   // player functions
   getPlayers() {
-    const players = this.players;
+    let players = this.players;
     if (players) {
       return players;
     } else {
@@ -394,16 +486,11 @@ export default class App {
 
   removePlayer() {
     let player = this.getSuggestionPlayer();
-    if (player) {
-      let playerId = player.id;
-      this.setCanMove(playerId, false);
-      this.syncPlayers();
-      let players = this.getPlayers();
-      players.filter( player => player.can_move);
-      if (players.length === 0) {
-        this.setGameMode('done');
-      }
-    }
+
+    // wait until player is retrieved
+    let playerId = player.id;
+    this.setCanMove(playerId, false);
+    this.updateTurn();
   }
 
   setLocation(loc) {
@@ -749,8 +836,7 @@ export default class App {
 
   endSuggestion() {
     this.setGameMode('board');
-    this.setTurn(this.getSuggestionPlayerTurn());
-    this.updateTurn();
+    this.updateSuggestionTurn();
   }
 
   acknowledgeAccusation() {
@@ -761,7 +847,6 @@ export default class App {
       this.setGameMode('board');
       this.removePlayer();
     }
-    this.updateTurn();
   }
 
   acknowledgeCard() {
@@ -770,7 +855,6 @@ export default class App {
     if (counter === 'card22') {
       let turn = this.getTurn();
       let player = this.getSuggestionPlayer();
-      // this.updateTurn();
       this.setSuggestionMode('C');
       turn += 1;
       turn = turn % players.length;

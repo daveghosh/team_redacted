@@ -11,14 +11,14 @@ class Board extends React.Component {
     constructor(props) {
         super(props);
         this.store = this.props.store.appStore;
-        // this.store.syncData();
+        this.store.syncData();
     }
 
-    componentDidMount() {
-        setInterval( () => {
-            this.store.syncData()
-        }, 500);
-    }
+    // componentDidMount() {
+    //     setInterval( () => {
+    //         this.store.syncData()
+    //     }, 500);
+    // }
 
     render() {
         let mode = this.store.getGameMode();
