@@ -7,11 +7,11 @@ const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const supabase = createClient(PROJECT_URL, ANON_KEY);
 
 // Table names
-const GAMES_TABLE = 'games_hannah';
-const PLAYERS_TABLE = 'players_hannah';
-const WEAPONS_TABLE = 'weapons_hannah';
-const CARDS_TABLE = 'cards_hannah';
-const SUG_TABLE = 'suggestions_hannah';
+const GAMES_TABLE = 'games';
+const PLAYERS_TABLE = 'players';
+const WEAPONS_TABLE = 'weapons';
+const CARDS_TABLE = 'cards';
+const SUG_TABLE = 'suggestions';
 
 export default class App {
   gameId = 1;
