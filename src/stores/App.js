@@ -185,15 +185,10 @@ export default class App {
   
   // cards do not change after being assigned
   async syncCards() {
-    if (!this.cardsCached) {
       const { data, error } = await supabase.from(CARDS_TABLE).select()
       if (data) {
         this.cards = data;
-        if (data.filter(card => card.player_id !== null).length > 0) {
-          this.cardsCached = true;
-        }
       }
-    }
   }
 
   async resetCards() {
@@ -378,7 +373,7 @@ export default class App {
     if (mode) {
       return mode
     } else {
-      return 'done';
+      return 'board';
     }
   }
   
@@ -391,31 +386,33 @@ export default class App {
     }
   }
 
-  canUpdateTurn() {
-    let players = this.getPlayers();
-    players.filter( player => player.can_move);
-    return players.length > 0;
+  canMove(idx) {
+    const mode = this.getGameMode();
+    const player = this.getPlayers()[idx];
+    return (mode === 'suggestion') || (player.can_move);
   }
 
   updateTurn() {
     let turn = this.getTurn();
     let players = this.getPlayers();
-    let mode = this.getGameMode();
     let canMove = false;
-    let canUpdate = this.canUpdateTurn();
 
-    // prevent an infinite loop
-    if (!canUpdate) {
+    // infinite loop precautions
+    const moveable = this.getCanMove(); 
+    if (moveable.length === 0) {
       this.setGameMode('done');
     }
+    let timeout = 0;
 
-    if (players.length > 0) {
-      while (!canMove) {
-        turn += 1;
-        turn = turn % players.length;
-        let player = players[turn];
-        canMove = (mode === 'suggestion') || player.can_move;
-      }
+    while (!canMove && timeout < players.length) {
+      console.log("Updating turn");
+      turn += 1;
+      turn = turn % players.length;
+      canMove = this.canMove(turn);
+      timeout++;
+    }
+    
+    if (canMove ) {
       this.setTurn(turn);
     }
   }
@@ -444,6 +441,11 @@ export default class App {
     } else {
       return [];
     }
+  }
+
+  getCanMove() {
+    const players = this.players;
+    return players.filter( player => player.can_move);
   }
 
   getPlayerIndex(id) {
@@ -497,9 +499,6 @@ export default class App {
     let players = this.getPlayers();
     if (turn < players.length && turn > -1) {
       const player = players[turn];
-      if (!player.can_move) {
-        this.setGameMode('done');
-      }
       return player;
     }
     return {};
@@ -516,12 +515,15 @@ export default class App {
   }
 
   removePlayer() {
-    let player = this.getSuggestionPlayer();
-
-    // wait until player is retrieved
-    let playerId = player.id;
-    this.setCanMove(playerId, false);
-    this.updateTurn();
+    const moveable = this.getCanMove();
+    if (moveable.length < 2) {
+      this.setGameMode('done');
+    } else {
+      let player = this.getSuggestionPlayer();
+      let playerId = player.id;
+      this.setCanMove(playerId, false);
+      this.updateTurn();
+    }
   }
 
   setLocation(loc) {
@@ -634,7 +636,6 @@ export default class App {
   }
 
   assignCards() {
-    console.log("Assigning cards");
     let rooms = this.getCardsByType('room');
     let persons = this.getCardsByType('person');
     let weapons = this.getCardsByType('weapon');
@@ -849,12 +850,10 @@ export default class App {
     this.setSuggestionPlayer(playerId);
     this.setSuggestionMode('S');
     this.setGameMode('suggestion');
-    // this.turn = this.fullOrder.indexOf(this.suggestion.player);
   }
 
-  validateAccusation() {
-    let cards = this.getSuggestionCards();
-    let solution = this.getSolution();
+  validateAccusation(cards) {
+    let solution = this.getSolution().map( card => card.id);
     let correct = true;
 
     for (let card of cards) {
@@ -934,7 +933,7 @@ export default class App {
       this.setSuggestionMode('C');
       this.updateTurn();
     } else if (mode === 'A') {
-      this.validateAccusation();
+      this.validateAccusation(cards);
     }
   }
   

@@ -87,7 +87,7 @@ class Suggestion extends React.Component {
                     <CounterCards cards={playerCards} suggestion={suggestionCards}/>
                 );
             // Suggesting Player is Viewing Counter Suggestion
-            } else if (isSugg && mode === 'V') {
+            } else if (isSugg && (['V', 'N'].includes(mode))) {
                 content = ( <ViewCard card={counterCard} player={player}/> );
             // Suggestion Player is Acknowledging Accusation Result
             } else if (isSugg && ['W', 'F'].includes(mode)) {

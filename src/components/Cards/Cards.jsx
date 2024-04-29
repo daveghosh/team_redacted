@@ -14,9 +14,11 @@ class Cards extends React.Component {
         let cards = this.props.cards;
         let size = this.props.size;
         for (const[id, card] of Object.entries(cards)) {
-            cardItems.push(
-                <Card size={size} key={card.name} name={card.name}/>
-            )
+            if (card) {
+                cardItems.push(
+                    <Card size={size} key={card.name} name={card.name}/>
+                )
+            }
         }
         
         return (
