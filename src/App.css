@@ -377,6 +377,14 @@
   align-self: center;
 }
 
+.center-status {
+  padding: 10px;
+  background-color: rgb(255, 255, 255);
+  text-align: center;
+  align-self: center;
+  margin-top: 50%;
+}
+
 .view-card {
   flex: 1;
   width: fit-content;
