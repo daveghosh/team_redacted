@@ -405,13 +405,12 @@ export default class App {
     let timeout = 0;
 
     while (!canMove && timeout < players.length) {
-      console.log("Updating turn");
       turn += 1;
       turn = turn % players.length;
       canMove = this.canMove(turn);
       timeout++;
     }
-    
+
     if (canMove ) {
       this.setTurn(turn);
     }

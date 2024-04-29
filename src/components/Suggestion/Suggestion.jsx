@@ -98,6 +98,11 @@ class Suggestion extends React.Component {
                             Okay
                         </div>
                     </div>);
+            } else if (['W', 'F'].includes(mode)) {
+                content = (
+                    <div className='accuse-status'>
+                         <span className="status">{status}</span>
+                    </div>);
             } else {
                 header = null;
                 content = ( <span className="status center-status">{status}</span> );
