@@ -17,6 +17,10 @@ class Actions extends React.Component {
         if (this.store.inRoom() && this.store.canSuggest()) {
             actions.push( <div className="action" id="suggest" onClick={this.suggest}>Suggest</div>);
             actions.push(<div className="action" id="accuse" onClick={this.accuse}>Accuse</div>);
+        // empty actions for spacing purposes
+        } else {
+            actions.push( <div className="blank-action" id="suggest">Suggest</div>);
+            actions.push(<div className="blank-action" id="accuse">Accuse</div>);
         }
         return (
             <div key="actions" className="actions">
