@@ -15,10 +15,11 @@ class Movement extends React.Component {
 
     render() {
 
+        const LOCATIONS = this.store.getLocations();
         let locItems = [];
         let curr = this.store.getCurrentPlayer();
         let cards = this.store.getPlayerCards();
-        for (const [locId, loc] of Object.entries(this.store.locations)) {
+        for (const [locId, loc] of Object.entries(LOCATIONS)) {
             let players = this.store.getPlayersAt(locId);
             let weapons = this.store.getWeaponsAt(locId);
             let adjacent = this.store.isAdjacent(curr, locId);

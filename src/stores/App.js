@@ -13,6 +13,43 @@ const WEAPONS_TABLE = 'weapons';
 const CARDS_TABLE = 'cards';
 const SUG_TABLE = 'suggestions';
 
+const LOCATIONS = {
+  // top rooms
+  room1:  { type: 'room', name: 'ballroom', align: 'none', adj: ["hall1", "hall3"]},
+  hall1:  { type: 'hall', align: 'horizontal', adj: ["room1", "room2"]},
+  room2:  { type: 'room', name: 'billiard room', align: 'none', adj: ["hall1", "hall2", "hall4"]},
+  hall2:  { type: 'hall', align: 'horizontal', adj: ["room2", "room3"]},
+  room3:  { type: 'room', name: 'conservatory', align: 'none', adj: ["hall2", "hall5"]},
+
+  // top to middle hallways
+  hall3:  { type: 'hall', align: 'vertical', adj: ["room1", "room4"]},
+  space1: { type: '', align: '', adj: []},
+  hall4:  { type: 'hall', align: 'vertical', adj: ["room2", "room5"]},
+  space2: { type: '', align: '', adj: []},
+  hall5:  { type: 'hall', align: 'vertical', adj: ["room3", "room6"]},
+
+  // middle rooms
+  room4:  { type: 'room', name: 'dining room', align: 'none', adj: ["hall3", "hall6", "hall8"]},
+  hall6:  { type: 'hall', align: 'horizontal', adj: ["room4", "room5"]},
+  room5:  { type: 'room', name: 'hall', align: 'none', adj: ["hall4", "hall6", "hall7", "hall9"]},
+  hall7:  { type: 'hall', align: 'horizontal', adj: ["room5", "room6"]},
+  room6:  { type: 'room', name: 'kitchen', align: 'none', adj: ["hall5", "hall7", "hall10"]},
+  hall8:  { type: 'hall', align: 'vertical', adj: ["room4", "room7"]},
+
+  // midle to bottom hallways
+  space3: { type: '', align: '', adj: []},
+  hall9:  { type: 'hall', align: 'vertical', adj: ["room5", "room8"]},
+  space4: { type: '', align: '', adj: []},
+  hall10: { type: 'hall', align: 'vertical', adj: ["room6", "room9"]},
+
+  // bottom rooms
+  room7:  { type: 'room', name: 'library', align: 'none', adj: ["hall8", "hall11"]},
+  hall11: { type: 'hall', align: 'horizontal', adj: ["room7", "room8"]},
+  room8:  { type: 'room', name: 'lounge', align: 'none', adj: ["hall9", "hall11", "hall12"]},
+  hall12: { type: 'hall', align: 'horizontal', adj: ["room8", "room9"]},
+  room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
+}
+
 export default class App {
   gameId = 1;
   session = null;
@@ -25,43 +62,6 @@ export default class App {
   cards = [];
   solution = [];
   suggestion = {};
-
-  locations = {
-    // top rooms
-    room1:  { type: 'room', name: 'ballroom', align: 'none', adj: ["hall1", "hall3"]},
-    hall1:  { type: 'hall', align: 'horizontal', adj: ["room1", "room2"]},
-    room2:  { type: 'room', name: 'billiard room', align: 'none', adj: ["hall1", "hall2", "hall4"]},
-    hall2:  { type: 'hall', align: 'horizontal', adj: ["room2", "room3"]},
-    room3:  { type: 'room', name: 'conservatory', align: 'none', adj: ["hall2", "hall5"]},
-
-    // top to middle hallways
-    hall3:  { type: 'hall', align: 'vertical', adj: ["room1", "room4"]},
-    space1: { type: '', align: '', adj: []},
-    hall4:  { type: 'hall', align: 'vertical', adj: ["room2", "room5"]},
-    space2: { type: '', align: '', adj: []},
-    hall5:  { type: 'hall', align: 'vertical', adj: ["room3", "room6"]},
-
-    // middle rooms
-    room4:  { type: 'room', name: 'dining room', align: 'none', adj: ["hall3", "hall6", "hall8"]},
-    hall6:  { type: 'hall', align: 'horizontal', adj: ["room4", "room5"]},
-    room5:  { type: 'room', name: 'hall', align: 'none', adj: ["hall4", "hall6", "hall7", "hall9"]},
-    hall7:  { type: 'hall', align: 'horizontal', adj: ["room5", "room6"]},
-    room6:  { type: 'room', name: 'kitchen', align: 'none', adj: ["hall5", "hall7", "hall10"]},
-    hall8:  { type: 'hall', align: 'vertical', adj: ["room4", "room7"]},
-
-    // midle to bottom hallways
-    space3: { type: '', align: '', adj: []},
-    hall9:  { type: 'hall', align: 'vertical', adj: ["room5", "room8"]},
-    space4: { type: '', align: '', adj: []},
-    hall10: { type: 'hall', align: 'vertical', adj: ["room6", "room9"]},
-
-    // bottom rooms
-    room7:  { type: 'room', name: 'library', align: 'none', adj: ["hall8", "hall11"]},
-    hall11: { type: 'hall', align: 'horizontal', adj: ["room7", "room8"]},
-    room8:  { type: 'room', name: 'lounge', align: 'none', adj: ["hall9", "hall11", "hall12"]},
-    hall12: { type: 'hall', align: 'horizontal', adj: ["room8", "room9"]},
-    room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
-  }
 
   channel = supabase
     .channel('schema-db-changes')
@@ -97,7 +97,7 @@ export default class App {
         schema: 'public',
         table: PLAYERS_TABLE,
       },
-      (payload) => {
+      () => {
         this.syncPlayers();
       }
     )
@@ -108,7 +108,7 @@ export default class App {
         schema: 'public',
         table: WEAPONS_TABLE
       },
-      (payload) => {
+      () => {
         this.syncWeapons();
       }
     )
@@ -119,7 +119,7 @@ export default class App {
         schema: 'public',
         table: CARDS_TABLE,
       },
-      (payload) => {
+      () => {
         this.syncCards();
       }
     )
@@ -183,7 +183,6 @@ export default class App {
 
   // card queries
   
-  // cards do not change after being assigned
   async syncCards() {
       const { data, error } = await supabase.from(CARDS_TABLE).select()
       if (data) {
@@ -191,30 +190,20 @@ export default class App {
       }
   }
 
-  async resetCards() {
-    const { error } = await supabase.from(CARDS_TABLE)
-      .update({player_id: null})
-      .not('player_id', 'is', null)
-  }
-
-  // player queries
-
-  async setCardPlayerId(cardId, playerId) {
-    const { error } = await supabase.from(CARDS_TABLE)
-      .update({player_id: playerId})
-      .eq('id', cardId);
-  }
-
+  // set the player_id of each card in cardIds
   async batchSetPlayerId(playerId, cardIds) {
     const { error } = await supabase.from(CARDS_TABLE)
       .update({player_id: playerId})
       .in('id', cardIds)
   }
 
+  // player queries
+
   async syncPlayers() {
     const { data, error } = await supabase.from(PLAYERS_TABLE).select()
     const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
     if (data) {
+      // order the players by color of the rainbow
       const ordered = data.sort(
         (player, other) => {
           const pIdx = colors.indexOf(player.color);
@@ -232,6 +221,12 @@ export default class App {
       .not('id', 'is', null)
   }
 
+  async deletePlayer(playerId) {
+    const { error } = await supabase.from(PLAYERS_TABLE)
+      .delete()
+      .eq('id', playerId)
+  }
+
   async addPlayer(id, color) {
     const loc = this.getNextRoom();
     const canSuggest = false;
@@ -245,12 +240,6 @@ export default class App {
   async setCanMove(playerId, canMove) {
     const { error } = await supabase.from(PLAYERS_TABLE)
       .update({can_move: canMove})
-      .eq('id', playerId)
-  }
-  
-  async deletePlayer(playerId) {
-    const { error } = await supabase.from(PLAYERS_TABLE)
-      .delete()
       .eq('id', playerId)
   }
 
@@ -321,7 +310,7 @@ export default class App {
       .eq('id', gameId)
   }
 
-  async setSuggestion(weapon, room, person) {
+  async setSuggestionCards(weapon, room, person) {
     const gameId = this.getGameId();
     const { error } = await supabase.from(SUG_TABLE)
       .update({weapon: weapon, room: room, person: person})
@@ -386,6 +375,7 @@ export default class App {
     }
   }
 
+  // see if player at index can move
   canMove(idx) {
     const mode = this.getGameMode();
     const player = this.getPlayers()[idx];
@@ -479,11 +469,7 @@ export default class App {
     return {};
   }
 
-  isActive() {
-    const curr = this.getCurrentPlayer();
-    return curr.id === this.session;
-  }
-
+  // check if session player has made a suggestion
   isSuggestionPlayer() {
     const player = this.getSuggestionPlayer();
     if (player) {
@@ -501,6 +487,11 @@ export default class App {
       return player;
     }
     return {};
+  }
+
+  isActive() {
+    const curr = this.getCurrentPlayer();
+    return curr.id === this.session;
   }
 
   canSuggest() {
@@ -524,6 +515,12 @@ export default class App {
       this.updateTurn();
     }
   }
+
+  // set the location of the current player
+  getLocations() {
+    return LOCATIONS;
+  }
+
 
   setLocation(loc) {
     const player = this.getCurrentPlayer();
@@ -617,6 +614,7 @@ export default class App {
     return cards;
   }
 
+  // get the cards of the session player
   getPlayerCards() {
     let cards = [];
     let curr = this.session;
@@ -688,9 +686,8 @@ export default class App {
 
   // location functions
   getRoomName(id) {
-    const locations = this.locations;
-    if (id in locations) {
-      return locations[id].name;
+    if (id in LOCATIONS) {
+      return LOCATIONS[id].name;
     } else {
       return '';
     }
@@ -723,7 +720,7 @@ export default class App {
     if (player.id !== this.session) {
       return false;
     } else if (player.loc) {
-      let curr = this.locations[player.loc];
+      let curr = LOCATIONS[player.loc];
       return curr.adj.includes(loc);
     } else {
       return false;
@@ -733,7 +730,7 @@ export default class App {
   inRoom() {
     let player = this.getCurrentPlayer();
     if (player.loc) {
-      let loc = this.locations[player.loc];
+      let loc = LOCATIONS[player.loc];
       return loc.type === 'room';
     } else {
       return false;
@@ -747,7 +744,7 @@ export default class App {
 
   getRoomByName(name) {
     let room;
-    for (const[id, value] of Object.entries(this.locations)) {
+    for (const[id, value] of Object.entries(LOCATIONS)) {
       if (value.name === name) {
         room = id;
       }
@@ -924,7 +921,7 @@ export default class App {
   submitSuggestion(cards) {
     let mode = this.getSuggestionMode();
     const suggestion = this.parseSuggestion(cards);
-    this.setSuggestion(suggestion.weapon, suggestion.room, suggestion.person);
+    this.setSuggestionCards(suggestion.weapon, suggestion.room, suggestion.person);
     const currId = this.getCurrentPlayer().id;
     this.setCanSuggestion(currId, false);
     if (mode === 'S') {
