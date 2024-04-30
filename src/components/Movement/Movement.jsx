@@ -22,12 +22,12 @@ class Movement extends React.Component {
         for (const [locId, loc] of Object.entries(LOCATIONS)) {
             let players = this.store.getPlayersAt(locId);
             let weapons = this.store.getWeaponsAt(locId);
-            let adjacent = this.store.isAdjacent(curr, locId);
+            let open = this.store.canMoveTo(curr, locId);
             let setLoc = () => this.store.setLocation(locId);
             if (loc.type === 'room') {
-                locItems.push(<Room key={locId} name={loc.name} id={locId} players={players} weapons={weapons} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
+                locItems.push(<Room key={locId} name={loc.name} id={locId} players={players} weapons={weapons} open={open} setLocation={setLoc} current={curr}/>)
             } else if (loc.type === 'hall') {
-                locItems.push(<Hallway key={locId} id={locId} align={loc.align} players={players} isAdjacent={adjacent} setLocation={setLoc} current={curr}/>)
+                locItems.push(<Hallway key={locId} id={locId} align={loc.align} players={players} open={open} setLocation={setLoc} current={curr}/>)
             } else {
                 locItems.push(<div key={locId}/>)
             }

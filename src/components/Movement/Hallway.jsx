@@ -8,7 +8,7 @@ export default class Hallway extends React.Component {
         if (this.props.align) {
             classname += this.props.align;
         }
-        if (this.props.isAdjacent) {
+        if (this.props.open) {
             classname += " hallway-active";
         }
 
