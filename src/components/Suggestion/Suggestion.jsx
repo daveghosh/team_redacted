@@ -1,9 +1,13 @@
 import React from "react";
 import { inject, observer } from 'mobx-react';
 
+import { Modal } from "@mui/material";
+import { Box } from "@mui/material";
+
 import CounterCards from "../Cards/CounterCards";
 import Cards from "../Cards/Cards";
 import ViewCard from "../Cards/ViewCard";
+import Notes from "../Notes/Notes";
 import SelectCards from "../Cards/SelectCards";
 
 class Suggestion extends React.Component {
@@ -22,6 +26,17 @@ class Suggestion extends React.Component {
         this.store = this.props.store.appStore;
         this.state = {
             selected: null,
+            showNotes: false,
+        }
+    }
+
+    showNotes() {
+        this.setState({showNotes: true})
+    }
+
+    hideNotes(reason) {
+        if (['backdropClick', 'escapeKeyDown'].includes(reason)) {
+            this.setState({showNotes: false})
         }
     }
 
@@ -115,6 +130,15 @@ class Suggestion extends React.Component {
                 <div className="player-cards">
                     {content}
                 </div>
+                <div className='notes-button' onClick={() => this.showNotes()}>🗒️</div>
+                <Modal
+                 open={this.state.showNotes}
+                 onClose={(_, reason) => this.hideNotes(reason)}
+                >
+                    <div className="notes-modal">
+                        <Notes/>
+                    </div>
+                </Modal>
             </div>
         )
     }

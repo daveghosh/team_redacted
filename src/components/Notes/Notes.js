@@ -28,7 +28,7 @@ class Notes extends React.Component {
         const suspects = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
         const rooms = ['ballroom', 'billiard', 'conserv.', 'dining',
                        'hall', 'kitchen', 'library', 'lounge', 'study'];
-        const weapons = ['revolver', 'dagger', 'lead pipe', 'rope', 'candlest.']
+        const weapons = ['revolver', 'dagger', 'lead pipe', 'rope', 'candlest.', 'wrench']
         let suspectItems = [];
         let weaponItems = [];
         let roomItems = [];
