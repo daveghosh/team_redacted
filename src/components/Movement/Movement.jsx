@@ -5,6 +5,7 @@ import Actions from "../Actions/Actions";
 import Cards from "../Cards/Cards";
 import Room from "./Room";
 import Hallway from "./Hallway";
+import Notes from "../Notes/Notes";
 
 
 class Movement extends React.Component {
@@ -43,7 +44,10 @@ class Movement extends React.Component {
                 <div key="locations" className="locations">
                     {locItems}
                 </div>
-                <Actions/>
+                <div className='actions-area'>
+                    <Actions/>
+                    <Notes/>
+                </div>
             </div>
         )
     }

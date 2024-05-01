@@ -24,6 +24,7 @@
 }
 
 .cards-area {
+  margin-top: 20px;
   flex: 1;
   height: 100%;
 }
@@ -31,7 +32,6 @@
 .board-cards {
   height: 100%;
   padding: 10px;
-  align-self: baseline;
 }
 
 .cards-header {
@@ -322,40 +322,142 @@
   border: solid white 1px;
 }
 
-.actions {
+.actions-area {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space space-between;
-  gap: 10px;
   height: 100%;
-  align-self: baseline;
-  margin: 10px;
+}
+
+.actions {
+  flex: 1;
+  width: 89%;
+  display: flex;
+  flex-direction: row;
+  padding-top: 20px;
+  gap: 10px;
+}
+
+.actions > * {
+  flex: 1;
+  height: 100%;
 }
 
 .action {
   background-color: white;
-  /* width: 75%; */
   width: fit-content;
-  height: 5%;
+  height: fit-content;
   padding: 10px;
 }
+
+.blank-action {
+  background-color: transparent;
+  color: transparent;
+  width: fit-content;
+  height: fit-content;
+  padding: 10px;
+}
+
 
 #reset {
   width: 75%;
 }
 
-#suggest {
-  width: 75%;
-}
-
-#accuse {
-  width: 75%;
-}
 
 .action:hover {
   cursor: pointer;
   background-color: rgb(223, 216, 183);
+}
+
+.notes {
+  flex: 1;
+  align-content: baseline;
+  height: fit-content;
+}
+
+.notes-button {
+  font-size: 64px;
+  position: absolute;
+  width: fit-content;
+  height: fit-content;
+  border-radius: 5%;
+  right: 10px;
+}
+
+.modal-backdrop {
+  background-color: pink;
+}
+
+.notes-modal {
+  width: fit-content;
+  margin-left: 45%;
+}
+
+.notes-button:hover {
+  cursor: pointer;
+}
+
+.notepad {
+  margin-right: 20px;
+  margin-bottom: 20px;
+  width: fit-content;
+  height: 90%;
+  background-color: white;
+  overflow-y: scroll;
+}
+
+.notes-header {
+  font-size: x-large;
+  color: rgb(222, 210, 46);
+  padding: 0;
+  margin: 0;
+}
+
+.notes-section-header {
+  background-color: rgb(222, 210, 46);
+  font-size: large;
+  padding: 0;
+  margin: 0;
+}
+
+.notes-section {
+  width: 100%;
+}
+
+.note-row {
+  background-color: rgb(193, 194, 193);
+  font-size: large;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.note-name {
+  font-size: large;
+  width: 80px;
+}
+
+.note-boxes {
+  display: flex;
+}
+
+.note-box {
+  background-color: white;
+  border: 1px black solid;
+  color: black;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  text-align: center;
+}
+
+.note-box:hover {
+  cursor: pointer;
+}
+
+.active-box:hover {
+  background-color: rgb(222, 210, 46);
 }
 
 #suggestion {

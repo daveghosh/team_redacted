@@ -63,6 +63,13 @@ export default class App {
   solution = [];
   suggestion = {};
 
+  notes = {
+    'red': 0, 'orange': 0, 'yellow': 0, 'green': 0, 'blue': 0, 'purple': 0,
+    'ballroom': 0, 'billiard': 0, 'conserv.': 0, 'dining': 0,
+    'hall': 0, 'kitchen': 0, 'library': 0, 'lounge': 0, 'study': 0,
+    'revolver': 0, 'dagger': 0, 'lead pipe': 0, 'rope': 0, 'candlest.': 0, 'wrench': 0
+  }
+
   channel = supabase
     .channel('schema-db-changes')
     .on(
@@ -145,6 +152,7 @@ export default class App {
       this.resetSuggestion();
       this.resetWeapons();
       this.deleteAllPlayers()
+      this.resetNotes();
   }
 
   // game queries
@@ -849,7 +857,7 @@ export default class App {
   }
 
   validateAccusation(cards) {
-    let solution = this.getSolution().map( card => card.id);
+    let solution = this.getSolution().map( card => card.name);
     let correct = true;
 
     for (let card of cards) {
@@ -942,4 +950,29 @@ export default class App {
       this.setSuggestionMode('V');
     }
   }
+
+  // note functions
+  updateNote(note) {
+    let value = this.notes[note];
+    if (value === 0) {
+      value = 1;
+    } else if (value === 1) {
+      value = -1;
+    } else if (value === -1) {
+      value = 0;
+    }
+    this.notes[note] = value;
+  }
+
+  resetNotes() {
+    for (const [key] of Object.keys(this.notes)) {
+      this.notes[key] = 0;
+    }
+  }
+
+  getNote(note) {
+    return this.notes[note];
+  }
+
 }
+
