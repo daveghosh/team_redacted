@@ -532,7 +532,7 @@ export default class App {
 
   setLocation(loc) {
     const player = this.getCurrentPlayer();
-    if (player && this.isAdjacent(player, loc)) {
+    if (player && this.canMoveTo(player, loc)) {
       this.setPlayerLocation(player.id, loc);
       this.updateTurn();
       this.setCanSuggestion(player.id, true);
@@ -724,6 +724,21 @@ export default class App {
     return weapons;
   }
 
+  isOccupied(loc) {
+    const players = this.getPlayers();
+    const playerLocs = players.map( player => player.loc);
+    return playerLocs.includes(loc);
+  }
+
+  isFull(loc) {
+    const location = LOCATIONS[loc];
+    if (location.type === 'room') {
+      return false;
+    } else {
+      return this.isOccupied(loc);
+    }
+  }
+
   isAdjacent(player, loc) {
     if (player.id !== this.session) {
       return false;
@@ -733,6 +748,12 @@ export default class App {
     } else {
       return false;
     }
+  }
+
+  canMoveTo(player, loc) {
+    const adj = this.isAdjacent(player, loc);
+    const full = this.isFull(loc);
+    return adj && !full;
   }
 
   inRoom() {

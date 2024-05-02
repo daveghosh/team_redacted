@@ -17,7 +17,7 @@ export default class Room extends React.Component {
         }
 
         let classname = "room";
-        if (this.props.isAdjacent) {
+        if (this.props.open) {
             classname += " room-active";
         }
 
