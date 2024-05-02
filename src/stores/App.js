@@ -15,11 +15,11 @@ const SUG_TABLE = 'suggestions';
 
 const LOCATIONS = {
   // top rooms
-  room1:  { type: 'room', name: 'ballroom', align: 'none', adj: ["hall1", "hall3"]},
+  room1:  { type: 'room', name: 'ballroom', align: 'none', adj: ["hall1", "hall3", "room9"]},
   hall1:  { type: 'hall', align: 'horizontal', adj: ["room1", "room2"]},
   room2:  { type: 'room', name: 'billiard room', align: 'none', adj: ["hall1", "hall2", "hall4"]},
   hall2:  { type: 'hall', align: 'horizontal', adj: ["room2", "room3"]},
-  room3:  { type: 'room', name: 'conservatory', align: 'none', adj: ["hall2", "hall5"]},
+  room3:  { type: 'room', name: 'conservatory', align: 'none', adj: ["hall2", "hall5", "room7"]},
 
   // top to middle hallways
   hall3:  { type: 'hall', align: 'vertical', adj: ["room1", "room4"]},
@@ -43,11 +43,11 @@ const LOCATIONS = {
   hall10: { type: 'hall', align: 'vertical', adj: ["room6", "room9"]},
 
   // bottom rooms
-  room7:  { type: 'room', name: 'library', align: 'none', adj: ["hall8", "hall11"]},
+  room7:  { type: 'room', name: 'library', align: 'none', adj: ["hall8", "hall11", "room3"]},
   hall11: { type: 'hall', align: 'horizontal', adj: ["room7", "room8"]},
   room8:  { type: 'room', name: 'lounge', align: 'none', adj: ["hall9", "hall11", "hall12"]},
   hall12: { type: 'hall', align: 'horizontal', adj: ["room8", "room9"]},
-  room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12"]},
+  room9:  { type: 'room', name: 'study', align: 'none', adj: ["hall10", "hall12", "room1"]},
 }
 
 export default class App {
